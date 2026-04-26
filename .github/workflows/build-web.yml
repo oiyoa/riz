@@ -1,0 +1,42 @@
+name: Build Web
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Single-File HTML
+        run: npm run build
+
+      - name: Verify Build Output
+        run: |
+          test -f dist/index.html || (echo "❌ dist/index.html not found" && exit 1)
+          FILE_SIZE=$(stat --printf="%s" dist/index.html)
+          echo "✅ dist/index.html built successfully ($FILE_SIZE bytes)"
+
+      - name: Generate Checksum
+        working-directory: ./dist
+        run: sha256sum index.html > checksum-web.txt
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: |
+            dist/index.html
+            dist/checksum-web.txt

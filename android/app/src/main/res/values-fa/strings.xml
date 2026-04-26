@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ریز</string>
+    
+    <!-- Password Bottom Sheet -->
+    <string name="key_settings">تنظیمات کلید</string>
+    <string name="set_new_key">تنظیم کلید جدید</string>
+    <string name="key_settings_desc">می‌توانید کلید خود را مشاهده یا تغییر دهید.</string>
+    <string name="set_new_key_desc">یک کلید برای فشرده‌سازی و امنیت اطلاعات خود انتخاب کنید.</string>
+    <string name="key_label">کلید</string>
+    <string name="enter_password">رمز عبور را وارد کنید…</string>
+    <string name="hide">پنهان کردن</string>
+    <string name="show">نمایش</string>
+    <string name="generate_suggested_key">تولید کلید پیشنهادی</string>
+    <string name="save_changes">ذخیره تغییرات</string>
+    <string name="confirm_and_continue">تأیید و ادامه</string>
+    <string name="delete_current_key">حذف کلید فعلی</string>
+
+    <!-- Main Screen -->
+    <string name="settings">تنظیمات</string>
+    <string name="tab_text">متن</string>
+    <string name="tab_file">فایل</string>
+    <string name="welcome_to_riz">به ریز خوش آمدید</string>
+    <string name="welcome_desc">برای فشرده‌سازی امن و سریع فایل‌ها و پیام‌ها، ابتدا باید یک کلید اختصاصی تنظیم کنید.</string>
+    <string name="set_compression_key">تنظیم کلید فشرده‌سازی</string>
+    <string name="cancel">لغو</string>
+    <string name="delete">حذف</string>
+    <string name="share">اشتراک‌گذاری</string>
+    <string name="save">ذخیره</string>
+    <string name="saved">ذخیره شد</string>
+    <string name="file_saved">فایل با موفقیت ذخیره شد</string>
+
+    <!-- Message Screen -->
+    <string name="message_placeholder">متن خود را بنویسید یا متن فشرده شده را بچسبانید…</string>
+    <string name="paste">چسباندن</string>
+    <string name="clear">پاک کردن</string>
+    <string name="result">نتیجه:</string>
+    <string name="copy">کپی</string>
+    <string name="copied_to_clipboard">کپی شد</string>
+    <string name="compress">فشرده‌سازی</string>
+    <string name="extract">استخراج</string>
+
+    <!-- File Screen -->
+    <string name="select_files_desc">فایل‌ها را برای فشرده‌سازی یا استخراج انتخاب کنید</string>
+    <string name="selected_files">فایل‌های انتخاب شده:</string>
+    <string name="add_file">افزودن فایل</string>
+    <string name="split_output">تقسیم فایل خروجی به قطعات کوچک‌تر</string>
+    <plurals name="result_count">
+        <item quantity="one">نتیجه (%1$d فایل)</item>
+        <item quantity="other">نتیجه (%1$d فایل)</item>
+    </plurals>
+    <string name="save_file">ذخیره فایل</string>
+    <string name="size_kb">%1$d کیلوبایت</string>
+    <string name="size_mb">%1$d مگابایت</string>
+
+    <!-- ViewModels & Status -->
+    <string name="error_enter_text">لطفاً متن خود را وارد کنید.</string>
+    <string name="error_set_key_first">لطفاً ابتدا کلید اختصاصی را تنظیم کنید.</string>
+    <string name="status_compressing">در حال فشرده‌سازی…</string>
+    <string name="status_extracting">در حال استخراج…</string>
+    <string name="error_generic">مشکلی پیش آمد. لطفاً کلید خود را بررسی کنید.</string>
+    <string name="error_enter_compressed_text">لطفاً متن فشرده شده را وارد کنید.</string>
+    <string name="error_wrong_key_or_corrupt">کلید اشتباه است یا متن آسیب دیده است.</string>
+    <string name="error_select_file">لطفاً فایلی انتخاب کنید.</string>
+    <string name="status_preparing">در حال آماده‌سازی…</string>
+    <string name="status_saving">در حال ذخیره‌سازی…</string>
+    <string name="error_file_processing">پردازش فایل ناموفق بود. لطفاً کلید خود را بررسی کنید.</string>
+    <string name="error_invalid_parts">فایل‌های انتخابی دارای شماره‌گذاری صحیح نیستند. لطفاً بخش‌های پشت سر هم را انتخاب کنید.</string>
+</resources>

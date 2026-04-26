@@ -1,0 +1,53 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  # ── Build web and android in parallel ─────────────────────────────
+  web:
+    uses: ./.github/workflows/build-web.yml
+
+  android:
+    uses: ./.github/workflows/build-android.yml
+    secrets:
+      ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+      KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+      KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
+  # ── Create release after both builds complete ─────────────────────
+  release:
+    needs: [web, android]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download Web Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: web-build
+          path: ./release-assets/web
+
+      - name: Download Android Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: android-build
+          path: ./release-assets/android
+
+      - name: Rename Web Build
+        run: mv ./release-assets/web/index.html ./release-assets/web/riz.html
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release-assets/web/riz.html
+            release-assets/web/checksum-web.txt
+            release-assets/android/app-release.apk
+            release-assets/android/checksum-android.txt
+          generate_release_notes: true

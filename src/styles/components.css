@@ -1,0 +1,478 @@
+label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  line-height: 1;
+}
+
+label svg,
+.btn svg {
+  flex-shrink: 0;
+}
+
+.icon-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  margin: -10px 0;
+}
+
+.icon-btn:active {
+  background: var(--surface);
+  color: var(--text);
+}
+
+input,
+textarea {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  color: var(--text);
+  font-size: 16px;
+  font-family: inherit;
+}
+
+input:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--theme);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 120px;
+  max-height: 60vh;
+  overflow-wrap: break-word;
+  field-sizing: content;
+}
+
+textarea[readonly] {
+  cursor: pointer;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex: 1;
+  border: none;
+  border-radius: 8px;
+  padding: 0.85rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  min-height: 48px;
+  user-select: none;
+  line-height: 1;
+}
+
+.btn:active:not(:disabled) {
+  opacity: 0.8;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn.primary {
+  background-color: var(--theme);
+  color: #fff;
+}
+
+.btn.secondary {
+  background-color: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.input-actions {
+  margin-bottom: 0.5rem;
+}
+
+.input-actions .btn {
+  min-height: 40px;
+  padding: 0.6rem;
+  font-size: 0.95rem;
+}
+
+#btn-paste-large {
+  flex: 2;
+}
+
+#btn-clear {
+  flex: 1;
+}
+
+.tab-bar {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.25rem;
+}
+
+.tab-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: 0.75rem 0.5rem;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.tab-btn:active {
+  opacity: 0.8;
+}
+
+.tab-btn.active {
+  color: var(--theme);
+  border-bottom-color: var(--theme);
+}
+
+.file-input-native {
+  padding: 0.6rem 0.8rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.file-input-native::file-selector-button {
+  background: var(--theme);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  margin-inline-end: 0.75rem;
+}
+
+.file-input-native::file-selector-button:active {
+  opacity: 0.8;
+}
+
+.file-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.file-info .download-btn {
+  cursor: default;
+}
+
+.file-info .file-split-detected {
+  color: var(--theme);
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+.split-label {
+  cursor: pointer;
+  user-select: none;
+  gap: 0.5rem;
+}
+
+.split-label input[type="checkbox"] {
+  width: auto;
+  accent-color: var(--theme);
+  cursor: pointer;
+}
+
+.split-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+}
+
+.split-controls input[type="range"] {
+  flex: 1;
+  padding: 0;
+  border: none;
+  background: transparent;
+  accent-color: var(--theme);
+  height: 24px;
+}
+
+.split-value-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+
+.split-value-wrap input[type="number"] {
+  width: 60px;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.85rem;
+  text-align: center;
+  border-radius: 6px;
+  -moz-appearance: textfield;
+}
+
+.split-value-wrap input[type="number"]::-webkit-inner-spin-button,
+.split-value-wrap input[type="number"]::-webkit-outer-spin-button {
+  opacity: 1;
+}
+
+.split-unit {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.file-results {
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.file-results label {
+  margin-bottom: 0.25rem;
+}
+
+.download-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  user-select: none;
+  transition: border-color 0.2s;
+}
+
+.download-btn:active {
+  opacity: 0.8;
+}
+
+.download-btn svg {
+  flex-shrink: 0;
+  color: var(--theme);
+}
+
+.download-btn .dl-name {
+  flex: 1;
+  text-align: start;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.download-btn .dl-size {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.banner-danger {
+  background: #ef4444;
+  color: white;
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.9rem;
+  border-radius: 8px;
+  margin: 1rem;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.banner-info {
+  background: rgba(14, 165, 233, 0.05);
+  border: 1px dashed var(--theme);
+  border-radius: 8px;
+  padding: 1.25rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.banner-info-icon {
+  margin-bottom: 0.75rem;
+  stroke: var(--theme);
+}
+
+.banner-info-text {
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.btn-setup {
+  min-height: 40px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: inline-flex;
+  width: auto;
+  font-size: 0.95rem;
+}
+
+.password-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.password-box-title {
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.password-box-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.password-input-wrap {
+  margin-bottom: 1rem;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input {
+  width: 100%;
+  padding: 0.6rem 2.5rem 0.6rem 0.8rem;
+  font-size: 0.95rem;
+}
+
+.btn-toggle-pwd {
+  position: absolute;
+  right: 0.4rem;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.btn-toggle-pwd:active {
+  background: var(--border);
+  color: var(--text);
+}
+
+.password-actions {
+  gap: 0.5rem;
+}
+
+.password-actions .btn {
+  min-height: 36px;
+  font-size: 0.9rem;
+}
+
+.btn-settings-small {
+  min-height: 28px;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.75rem;
+  border-radius: 6px;
+  gap: 4px;
+  margin: -4px 0;
+  flex: 0 0 auto;
+  width: auto;
+}
+
+.btn {
+  position: relative;
+  overflow: hidden;
+  min-width: 120px; /* Prevent jumpy width changes */
+  transition: background-color 0.2s, opacity 0.2s, transform 0.1s;
+}
+
+.btn.loading {
+  cursor: pointer;
+  pointer-events: auto; /* Allow clicks for cancellation */
+  font-size: 0.85rem;
+  white-space: nowrap;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+.btn.loading span {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btn.loading .btn-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.4);
+  width: 100%;
+  transform: translateX(-100%);
+  animation: btnProgressPulse 2s infinite ease-in-out;
+}
+
+.btn.secondary.loading .btn-progress {
+  background: var(--theme);
+}
+
+.btn.primary-action {
+  opacity: 1;
+}
+
+.btn.secondary-action {
+  opacity: 0.6;
+}
+
+@keyframes btnProgressPulse {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(0); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

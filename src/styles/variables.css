@@ -1,0 +1,12 @@
+:root {
+  --theme: #fb7b60; /* ThemePrimary - Vibrant Coral */
+  --theme-secondary: #ffeba8; /* ThemeSecondary - Warm Cream */
+  --theme-tertiary: #8ed2c9; /* ThemeTertiary - Mint Green */
+  --bg: #0e1413; /* ThemeBackground - Deep Minty Charcoal */
+  --surface: #161c1b; /* ThemeSurface */
+  --surface-variant: #1e2423; /* ThemeSurfaceVariant */
+  --text: #f3f4f6; /* ThemeText */
+  --text-muted: #9ca3af; /* ThemeTextMuted */
+  --border: #2a302f; /* ThemeBorder */
+  --error: #ef4444; /* ThemeError */
+}

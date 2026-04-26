@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Riz | ریز</title>
+  
+  <!-- PWA & Mobile Install Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Riz" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#000000" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDggMTA4IiBmaWxsPSJub25lIj4KICAgIDxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDIwLCAxNikgc2NhbGUoMC40KSI+CiAgICAgICAgPCEtLSBBbnRlbm5hcyBTdHJva2VzIC0tPgogICAgICAgIDxwYXRoIGQ9Ik02Mi4wMTE0LDg2LjQ5MjNDNzIuMDE1Myw2Mi43NTE4IDY4LjkxMTcsNDEuNTc3MiA0My4wNzYxLDM4LjY1NzggTTEwNS41NzIsODYuNDkyM0M5NS41NjgyLDYyLjc1MTggOTguNjcxOCw0MS41NzcyIDEyNC41MDcsMzguNjU3OCIgc3Ryb2tlPSIjRkZFQkE4IiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogICAgICAgIAogICAgICAgIDwhLS0gQW50ZW5uYSBUaXBzIC0tPgogICAgICAgIDxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDQ0LjY0NjYsIDM3LjU1MjEpIHJvdGF0ZSg2Ni41KSI+CiAgICAgICAgICAgIDxlbGxpcHNlIGN4PSIwIiBjeT0iMCIgcng9IjcuMzgiIHJ5PSI5LjQ5IiBmaWxsPSIjRkZEOTc0Ii8+CiAgICAgICAgPC9nPgogICAgICAgIDxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDEyMi45MzcsIDM3LjU1MjEpIHJvdGF0ZSg2Ni41KSI+CiAgICAgICAgICAgIDxlbGxpcHNlIGN4PSIwIiBjeT0iMCIgcng9IjcuMzgiIHJ5PSI5LjQ5IiBmaWxsPSIjRkZEOTc0Ii8+CiAgICAgICAgPC9nPgoKICAgICAgICA8IS0tIEFudCBCb2R5L0hlYWQgKE1haW4pIC0tPgogICAgICAgIDxwYXRoIGZpbGw9IiNGRkVCQTgiIGQ9Ik0yNS42MywxMDIuNTAzQzI2Ljk1ODQsNzYuOTk4NSA0OC4wMjU2LDU3IDczLjU2NTEsNTdIOTQuNDM0OUMxMTkuOTc0LDU3IDE0MS4wNDIsNzYuOTk4NSAxNDIuMzcsMTAyLjUwM0MxNDMuOCwxMjkuOTU3IDEyMS45MjUsMTUzIDk0LjQzNDksMTUzSDczLjU2NTFDNDYuMDc0NiwxNTMgMjQuMjAwMiwxMjkuOTU3IDI1LjYzLDEwMi41MDNaIi8+CgogICAgICAgIDwhLS0gQm9keSBTaGFkb3cgLS0+CiAgICAgICAgPHBhdGggZmlsbD0iI0ZGRUJBOCIgZmlsbD0iI0ZGRUJBOCIgZmlsbC1vcGFjaXR5PSIwLjciIGQ9Ik0yNS42NTYzLDEwMi4wNDFDMjUuNjQ2OCwxMDIuMTk1IDI1LjYzODEsMTAyLjM0OSAyNS42MywxMDIuNTAzQzI0LjIwMDIsMTI5Ljk1NyA0Ni4wNzQ2LDE1MyA3My41NjUxLDE1M0g5NC40MzQ5QzEyMS45MjUsMTUzIDE0My44LDEyOS45NTcgMTQyLjM3LDEwMi41MDNDMTQyLjM2MiwxMDIuMzQ5IDE0Mi4zNTMsMTAyLjE5NSAxNDIuMzQ0LDEwMi4wNDFDMTQwLjc5NywxMjYuOTg2IDEyMC4wNTUsMTQ3IDk0LjQzNDksMTQ3SDczLjU2NTFDNDcuOTQ1NCwxNDcgMjcuMjAzNCwxMjYuOTg2IDI1LjY1NjMsMTAyLjA0MVoiLz4KCiAgICAgICAgPCEtLSBFeWVzIC0tPgogICAgICAgIDxnPgogICAgICAgICAgICA8IS0tIExlZnQgRXllIC0tPgogICAgICAgICAgICA8Y2lyY2xlIGN4PSI1NCIgY3k9IjkzIiByPSIxNSIgZmlsbD0iI0ZGRkZGRiIvPgogICAgICAgICAgICA8ZWxsaXBzZSBjeD0iNTUuNDQ3NSIgY3k9IjkxLjQzNCIgcng9IjExLjY1NTUiIHJ5PSIxMS4xODkzIiBmaWxsPSIjMzkzOTM5Ii8+CiAgICAgICAgICAgIDxjaXJjbGUgY3g9IjU4LjcxMSIgY3k9Ijg4LjYzNjciIHI9IjMuNzI5NzYiIGZpbGw9IiNGRkZGRkYiLz4KICAgICAgICAgICAgPGNpcmNsZSBjeD0iNTIuNjUwMiIgY3k9Ijk1LjYzMDEiIHI9IjIuMzMxMSIgZmlsbD0iI0ZGRkZGRiIvPgogICAgICAgICAgICAKICAgICAgICAgICAgPCEtLSBSaWdodCBFeWUgLS0+CiAgICAgICAgICAgIDxjaXJjbGUgY3g9IjExNCIgY3k9IjkzIiByPSIxNSIgZmlsbD0iI0ZGRkZGRiIvPgogICAgICAgICAgICA8ZWxsaXBzZSBjeD0iMTE1LjQ0OCIgY3k9IjkxLjQzNCIgcng9IjExLjY1NTUiIHJ5PSIxMS4xODkzIiBmaWxsPSIjMzkzOTM5Ii8+CiAgICAgICAgICAgIDxjaXJjbGUgY3g9IjExOC43MTEiIGN5PSI4OC42YzY3IiByPSIzLjcyOTc2IiBmaWxsPSIjRkZGRkZGIi8+CiAgICAgICAgICAgIDxjaXJjbGUgY3g9IjExMi42NSIgY3k9Ijk1LjYzMDEiIHI9IjIuMzMxMSIgZmlsbD0iI0ZGRkZGRiIvPgogICAgICAgIDwvZz4KCiAgICAgICAgPCEtLSBNb3V0aCAtLT4KICAgICAgICA8cGF0aCBmaWxsPSIjMzkzOTM5IiBkPSJNOTcsMTA1Qzk3LDEwNi44MzkgOTYuNjYzNywxMDguNjU5IDk2LjAxMDQsMTEwLjM1OEM5NS4zNTcxLDExMi4wNTYgOTQuMzk5NSwxMTMuNTk5IDkzLjE5MjQsMTE0Ljg5OUM5MS45ODUyLDExNi4yIDkwLjU1MjEsMTE3LjIzMSA4OC45NzQ5LDExNy45MzRDODcuMzk3NywxMTguNjM4IDg1LjcwNzIsMTE5IDg0LDExOUM4Mi4yOTI4LDExOSA4MC42MDIzLDExOC42MzggNzkuMDI1MSwxMTcuOTM0Qzc3LjQ0NzksMTE3LjIzMSA3Ni4wMTQ4LDExNi4yIDc0LjgwNzYsMTE0Ljg5OUM3My42MDA0LDExMy41OTkgNzIuNjQyOSwxMTIuMDU2IDcxLjk4OTYsMTEwLjM1OEM3MS4zMzYzLDEwOC42NTkgNzEsMTA2LjgzOSA3MSwxMDVMOTcsMTA1WiIvPgogICAgICAgIDxwYXRoIGZpbGw9IiNFRDY1M0IiIGQ9Ik05My43NjQsMTE0LjI0M0M5My41ODAzLDExNC40NjggOTMuMzg5NywxMTQuNjg3IDkzLjE5MjQsMTE0Ljg5OUM5MS45ODUzLDExNi4yIDkwLjU1MjIsMTE3LjIzMSA4OC45NzQ5LDExNy45MzRDODcuMzk3NywxMTguNjM4IDg1LjcwNzIsMTE5IDg0LDExOUM4Mi4yOTI0LDExOC42MzggNzkuMDI1MiwxMTcuOTM0Qzc3LjQ0NzksMTE3LjIzMSA3Ni4wMTQ4LDExNi4yIDc0LjgwNzYsMTE0Ljg5OUM3NC42MTA0LDExNC42ODcgNzQuNDE5OCwxMTQuNDY4IDc0LjIzNjEsMTE0LjI0M0M3NS40OTksMTEyLjI4NCA3Ny42MDk2LDExMSA4MCwxMTFDODEuNDg3MywxMTEgODIuODY2MiwxMTEuNDk3IDg0LDExMi4zNDRDODUuMTMzOSwxMTEuNDk3IDg2LjUxMjgsMTExIDg4LDExMUM5MC4zOTA1LDExMSA5Mi41MDExLDExMi4yODQgOTMuNzY0LDExNC4yNDNaIi8+CgogICAgICAgIDwhLS0gQ2hlZWtzIC0tPgogICAgICAgIDxlbGxpcHNlIGN4PSI0MC41IiBjeT0iMTE0LjUiIHJ4PSI1LjUiIHJ5PSI0LjUiIGZpbGw9IiNGRUIxQUEiLz4KICAgICAgICA8ZWxsaXBzZSBjeD0iMTMwLjUiIGN5PSIxMTQuNSIgcng9IjUuNSIgcnk9IjQuNSIgZmlsbD0iI0ZFQjFBQSIvPgoKICAgICAgICA8IS0tIEJvdHRvbSBBY2Nlc3NvcmllcyAtLT4KICAgICAgICA8Zz4KICAgICAgICAgICAgPHBhdGggZmlsbD0iIzhFRDJDOSIgZD0iTTk5LjM0NzYsMTI4LjY3N0M5OS40NDA2LDEyOC42MTQgOTkuNTQ1NCwxMjguNTY0IDk5LjY1OTcsMTI4LjUzMkMxMDAuMjMsMTI4LjM2OSAxMDAuODI0LDEyOC42OTYgMTAwLjk4NywxMjkuMjYyQzEwMi41NTcsMTM0LjcyNSAxMDMuMDg1LDEzNy44OTkgMTAzLjExNywxNDMuNjAzQzEwMy4xMjEsMTQ0LjE5MSAxMDIuNjQzLDE0NC42NzIgMTAyLjA1LDE0NC42NzdDMTAxLjQ1NywxNDQuNjgxIDEwMC45NzMsMTQ0LjIwOCAxMDAuOTcsMTQzLjYxOUMxMDAuOTQxLDEzOC41NDEgMTAwLjUxNiwxMzUuNjA5IDk5LjI0NTgsMTMxLjAwMUM5OC40NjIsMTMzLjI0NiA5Ny4xMDkzLDEzNi40MzIgOTUuMzE1MywxMzguMDQ4QzkyLjM2OSwxNDAuNzAxIDg3LjEyMTcsMTQxLjA5NCA4Ny4xMjE3LDE0MS4wOTRDODcuMTIxNywxNDEuMDk0IDg3LjE4NjcsMTM1LjA4MSA5MC4xNTU5LDEzMi42MThDOTIuNTYxOSwxMzAuNjIyIDk3LjU0NCwxMjkuMTYgOTkuMzQ3NiwxMjguNjc3WiIvPgogICAgICAgICAgICA8cGF0aCBmaWxsPSIjRUI3MzVBIiBkPSJNMTExLjEyOCwxNDMuNDhDMTEyLjA1NSwxNDguNzAxIDEwOC4wNTQsMTUxLjc0NiAxMDQuMjA5LDE1Mi40MjhDMTAwLjM2NCwxNTMuMTExIDk1Ljc2NTksMTUwLjk5NSA5NC45NDE4LDE0Ni4zNTRDOTQuMTE3NywxNDEuNzEzIDk3LjM2ODgsMTM2Ljc2NyAxMDEuNjQ0LDEzNy45ODJDMTA1LjA1ODgsMTM1LjU4MSAxMTAuMjAxLDEzOC4yNTggMTExLjEyOCwxNDMuNDhaIi8+CiAgICAgICAgICAgIDxwYXRoIGZpbGw9IiI4RUQyQzkiIGQ9Ik0xMTkuODk0LDEyOS44NzRDMTE5Ljc3NywxMjkuNzk0IDExOS42NDUsMTI5LjczMiAxMTkuNTAyLDEyOS42OTFDMTE4Ljc4NSAxMjkuNDg2IDExOC4wMzkgMTI5Ljg5NyAxMTcuODM1LDEzMC42MDdDMTE1Ljg2MywxMzcuNDY4IDExNS4yLDE0MS40NTQgMTE1LjE2LDE0OC42MTdDMTE1LjE1NSwxNDkuMzU2IDExNS43NTYsMTQ5Ljk2IDExNi41LDE0OS45NjZDMTE3LjI0NSwxNDkuOTcxIDExNy42NSwxNDkuOTY2IDExNi41LDE0OS45NjZDMTE3LjI0NSAxNDkuOTcxIDExNy44NTIgMTQ5LjM3NyAxMTcuODU3IDE0OC42MzhDMTE3Ljg5MyAxNDIuMjYgMTE3LjQyNywxMzguNTc5IDEyMC4wMjEsMTMyLjc5MkMxMjEuMDA2LDEzNS42MTEgMTIyLjcwNCwxMzkuNjEyIDEyNC45NTcsMTQxLjY0MUMxMjguNjU3LDE0NC45NzMgMTM1LjI0NywxNDUuNDY2IDEzNS4yNDcsMTQ1LjQ2NkMxMzUuMjQ3LDE0NS40NjYgMTM1LjE2NSwxMzcuOTE1IDEzMS40MzYsMTM0LjgyMkMxMjguNDE1LDEzMi4zMTUgMTIyLjE1OSwxMzAuNDggMTE5Ljg5NCAxMjkuODc0WiIvPgogICAgICAgICAgICA8cGF0aCBmaWxsPSIjRkI3QjYwIiBkPSJNMTA1LjEsMTQ4LjQ2MkMxMDMuOTM1LDE1NS4wMTkgMTA4Ljk2LDE1OC44NDMgMTEzLjc4OSwxNTkuN0MxMTguNjE3LDE2MC41NTcgMTI0LjM5MSwxNTcuOSAxMjUuNDI2LDE1Mi4wNzJDMTI2LjQ2MSAxNDYuMjQzIDEyMi4zNzksMTQwLjAzMiAxMTcuMDEsMTQxLjU1OUMxMTIuNzIzLDEzOC41NDMgMTA2LjI2NCwxNDEuOTA1IDEwNS4xLDE0OC40NjJaIi8+CiAgICAgICAgPC9nPgogICAgPC9nPgo8L3N2Zz4K" />
+
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+
+  <noscript>
+    <div class="banner-danger">
+      برای استفاده از این برنامه، جاوا اسکریپت مرورگر خود را فعال کنید. این برنامه بدون جاوا اسکریپت کار نمی‌کند.
+    </div>
+  </noscript>
+
+  <svg style="display:none">
+    <symbol id="i-key" viewBox="0 0 24 24">
+      <rect x="3" y="10" width="18" height="10" rx="2" stroke="currentColor" fill="none" stroke-width="2"/>
+      <path d="M12 10V6a2 2 0 1 1 4 0v4" stroke="currentColor" fill="none" stroke-width="2"/>
+    </symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24">
+      <rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect>
+      <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path>
+    </symbol>
+    <symbol id="i-check" viewBox="0 0 24 24">
+      <path d="M20 6 9 17l-5-5"></path>
+    </symbol>
+    <symbol id="i-extract" viewBox="0 0 24 24">
+      <rect x="3" y="12" width="18" height="9" rx="1" stroke="currentColor" fill="none" stroke-width="2"/>
+      <path d="M12 14V4 M8 8l4-4 4 4" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-file" viewBox="0 0 24 24">
+      <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path>
+      <path d="M14 2v4a2 2 0 0 0 2 2h4"></path>
+    </symbol>
+    <symbol id="i-msg" viewBox="0 0 24 24">
+      <path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"></path>
+    </symbol>
+    <symbol id="i-compress" viewBox="0 0 24 24">
+      <rect x="3" y="14" width="18" height="7" rx="1" stroke="currentColor" fill="none" stroke-width="2"/>
+      <path d="M12 3v11 M8 9l4 5 4-5" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24">
+      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0z"></path>
+      <circle cx="12" cy="12" r="3"></circle>
+    </symbol>
+    <symbol id="i-eye-off" viewBox="0 0 24 24">
+      <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path>
+      <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path>
+      <path d="M6.61 6.61A13.52 13.52 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path>
+      <line x1="2" x2="22" y1="2" y2="22"></line>
+    </symbol>
+  </svg>
+
+  <main class="container">
+
+    <div class="tab-bar">
+      <button id="tab-text" class="tab-btn active" type="button">
+        <svg viewBox="0 0 24 24" width="16" height="16">
+          <use href="#i-msg" />
+        </svg>
+        متن
+      </button>
+      <button id="tab-file" class="tab-btn" type="button">
+        <svg viewBox="0 0 24 24" width="16" height="16">
+          <use href="#i-file" />
+        </svg>
+        فایل
+      </button>
+
+    </div>
+    <!-- ===== GLOBAL PASSWORD UI ===== -->
+    <div id="password-status-banner" class="field banner-info">
+      <svg viewBox="0 0 24 24" width="32" height="32" class="banner-info-icon">
+        <use href="#i-key" />
+      </svg>
+      <p class="banner-info-text">برای استفاده از برنامه، کلید اختصاصی را تنظیم کنید.</p>
+      <button id="btn-setup-password" class="btn primary btn-setup">تنظیم کلید</button>
+    </div>
+
+    <div id="password-inline-box" class="field hidden password-box">
+      <h3 class="password-box-title">
+        <svg viewBox="0 0 24 24" width="18" height="18">
+          <use href="#i-key" />
+        </svg>
+        کلید فشرده‌سازی
+      </h3>
+      <p class="password-box-desc" id="password-box-desc">
+        برای ادامه، لطفاً کلید فشرده‌سازی را وارد کنید.
+      </p>
+      <div class="field password-input-wrap">
+        <input type="password" id="password-input-box" placeholder="کلید اختصاصی" class="password-input" autocomplete="off" />
+        <button id="btn-toggle-password" class="btn-icon btn-toggle-pwd" type="button" aria-label="نمایش کلید">
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <use href="#i-eye" />
+          </svg>
+        </button>
+      </div>
+      <div class="actions password-actions">
+        <button id="btn-save-password" class="btn primary">تأیید</button>
+        <button id="btn-cancel-password" class="btn secondary">انصراف</button>
+      </div>
+    </div>
+    <!-- ===== MESSAGE PANEL ===== -->
+    <div id="panel-text">
+      <div class="field">
+        <div class="field-header">
+          <label for="input-text">متن</label>
+          <button id="btn-settings-text" class="btn secondary hidden btn-settings-small">
+            <svg viewBox="0 0 24 24" width="14" height="14">
+              <use href="#i-key" />
+            </svg>
+            <span>تغییر کلید</span>
+          </button>
+        </div>
+        <div class="actions input-actions">
+          <button id="btn-paste-large" class="btn secondary">
+            <svg viewBox="0 0 24 24" width="18" height="18">
+              <path d="M11 14h10"></path>
+              <path d="M16 4h2a2 2 0 0 1 2 2v1.344"></path>
+              <path d="m17 18 4-4-4-4"></path>
+              <path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 1.793-1.113"></path>
+              <rect x="8" y="2" width="8" height="4" rx="1"></rect>
+            </svg>
+            <span>چسباندن (Paste)</span>
+          </button>
+          <button id="btn-clear" class="btn secondary" disabled>
+            <svg viewBox="0 0 24 24" width="18" height="18">
+              <path
+                d="M21 21H8a2 2 0 0 1-1.42-.587l-3.994-3.999a2 2 0 0 1 0-2.828l10-10a2 2 0 0 1 2.829 0l5.999 6a2 2 0 0 1 0 2.828L12.834 21">
+              </path>
+              <path d="m5.082 11.09 8.828 8.828"></path>
+            </svg>
+            <span>پاک کردن</span>
+          </button>
+        </div>
+        <textarea id="input-text" placeholder="متن خود را بنویسید یا متن فشرده‌شده را بچسبانید..."></textarea>
+      </div>
+
+      <div class="actions">
+        <button id="btn-encrypt" class="btn primary">
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <use href="#i-compress" />
+          </svg>
+          <span>فشرده‌سازی</span>
+        </button>
+        <button id="btn-decrypt" class="btn secondary">
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <use href="#i-extract" />
+          </svg>
+          <span>استخراج</span>
+        </button>
+      </div>
+
+      <div id="error-msg" class="error hidden"></div>
+
+      <div class="output-group hidden" id="output-container">
+        <label for="output-text">
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <use href="#i-msg" />
+          </svg>
+          نتیجه
+        </label>
+        <div class="copy-wrap">
+          <textarea id="output-text" readonly></textarea>
+          <button id="btn-copy" class="btn-copy" aria-label="کپی">
+            <svg viewBox="0 0 24 24">
+              <use href="#i-copy" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== FILE PANEL ===== -->
+    <div id="panel-file" class="hidden">
+      <div class="field" id="file-pick-section">
+        <div class="field-header">
+          <label>
+            <svg viewBox="0 0 24 24" width="18" height="18">
+              <use href="#i-file" />
+            </svg>
+            انتخاب فایل
+          </label>
+          <button id="btn-settings-file" class="btn secondary hidden btn-settings-small">
+            <svg viewBox="0 0 24 24" width="14" height="14">
+              <use href="#i-key" />
+            </svg>
+            <span>تغییر کلید</span>
+          </button>
+        </div>
+        <input type="file" id="file-input" multiple accept="*/*" class="file-input-native" />
+        <div id="file-info" class="file-info hidden"></div>
+      </div>
+
+      <div class="field" id="split-section">
+        <label class="split-label" for="split-toggle">
+          <input type="checkbox" id="split-toggle" />
+          <span>تقسیم به چند فایل کوچک تر</span>
+        </label>
+        <div id="split-controls" class="split-controls hidden">
+          <input type="range" id="split-slider" min="1" max="50" value="5" />
+          <div class="split-value-wrap">
+            <input type="number" id="split-input" min="1" max="50" value="5" />
+            <span class="split-unit">مگابایت</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="btn-file-compress" class="btn primary" disabled>
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <use href="#i-compress" />
+          </svg>
+          <span>فشرده‌سازی</span>
+        </button>
+        <button id="btn-file-extract" class="btn secondary" disabled>
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <use href="#i-extract" />
+          </svg>
+          <span>استخراج</span>
+        </button>
+      </div>
+
+      <div id="file-error" class="error hidden"></div>
+
+      <div id="file-results" class="file-results hidden"></div>
+
+    </div>
+
+  </main>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+
+</html>
