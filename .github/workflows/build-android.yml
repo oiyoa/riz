@@ -36,6 +36,13 @@ jobs:
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_B64 }}" | base64 --decode > android/my-release-key.jks
 
+      - name: Set up Versioning
+        run: |
+          # Remove 'v' prefix if present for version name
+          VERSION_NAME="${GITHUB_REF_NAME#v}"
+          echo "VERSION_NAME=${VERSION_NAME}" >> $GITHUB_ENV
+          echo "VERSION_CODE=${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+
       - name: Build Release APK
         working-directory: ./android
         run: ./gradlew assembleRelease
