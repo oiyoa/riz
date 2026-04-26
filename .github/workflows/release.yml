@@ -28,13 +28,13 @@ jobs:
 
     steps:
       - name: Download Web Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: web-build
           path: ./release-assets/web
 
       - name: Download Android Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: android-build
           path: ./release-assets/android
@@ -43,7 +43,7 @@ jobs:
         run: mv ./release-assets/web/index.html ./release-assets/web/riz.html
 
       - name: Create Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: |
             release-assets/web/riz.html
