@@ -13,6 +13,7 @@ export const btnFileCompress = $('btn-file-compress');
 export const btnFileExtract = $('btn-file-extract');
 export const fileError = $('file-error');
 export const fileResults = $('file-results');
+export const btnFileClear = $('btn-file-clear');
 
 function renderFileRow(name, size, icon, onClick) {
   const el = document.createElement(onClick ? 'button' : 'div');
@@ -110,12 +111,20 @@ export function setupFilePanel() {
     const files = fileInput.files;
     if (!files || files.length === 0) {
       fileInfo.classList.add('hidden');
+      if (btnFileClear) btnFileClear.classList.add('hidden');
       updateFileButtons();
       updateActionPriorities();
       return;
     }
 
     fileInfo.classList.remove('hidden');
+    if (btnFileClear) {
+      if (files.length > 1) {
+        btnFileClear.classList.remove('hidden');
+      } else {
+        btnFileClear.classList.add('hidden');
+      }
+    }
     fileInfo.innerHTML = '';
     for (const f of files) {
       fileInfo.appendChild(renderFileRow(f.name, f.size, 'file', null));
@@ -130,6 +139,17 @@ export function setupFilePanel() {
     updateFileButtons();
     updateActionPriorities();
   });
+
+  if (btnFileClear) {
+    btnFileClear.addEventListener('click', () => {
+      fileInput.value = '';
+      const ev = new Event('change');
+      fileInput.dispatchEvent(ev);
+      fileResults.classList.add('hidden');
+      fileResults.innerHTML = '';
+      revokeAllUrls();
+    });
+  }
 
   // Restore split settings
   const savedSplit = localStorage.getItem('split_enabled') === 'true';
@@ -241,6 +261,7 @@ export function setupFilePanel() {
         const fileList = res.files;
         label.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18"><use href="#i-extract"/></svg> نتیجه — ${fileList.length} فایل`;
         fileResults.appendChild(label);
+
         for (const f of fileList) {
           fileResults.appendChild(renderFileRow(f.filename, f.data.length, 'extract', async () => await downloadBlob(f.data, f.filename)));
         }

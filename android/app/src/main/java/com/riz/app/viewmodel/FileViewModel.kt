@@ -9,7 +9,6 @@ import com.riz.app.crypto.FileEntry
 import com.riz.app.crypto.FileNamingUtils
 import com.riz.app.data.repository.FileRepository
 import com.riz.app.data.repository.SecurityRepository
-import com.riz.app.crypto.Base64Url
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -36,7 +35,7 @@ class FileViewModel(
     private var currentJob: Job? = null
 
     sealed class FileEvent {
-        object DownloadSuccess : FileEvent()
+        data class DownloadSuccess(val fileNames: List<String>) : FileEvent()
 
         data class Error(
             val message: String,
@@ -65,6 +64,13 @@ class FileViewModel(
         _uiState.update { it.copy(selectedFiles = currentFiles) }
     }
 
+    fun clearAllFiles() {
+        viewModelScope.launch {
+            fileRepository.clearCache()
+            _uiState.update { it.copy(selectedFiles = emptyList(), results = emptyList(), error = null) }
+        }
+    }
+
     fun setSplitSize(mb: Int) {
         _uiState.update { it.copy(splitSizeMB = mb) }
     }
@@ -91,12 +97,30 @@ class FileViewModel(
             try {
                 fileRepository.copyFileToUri(fileToSave.file, uri)
                 _uiState.update { it.copy(pendingDownloadFile = null) }
-                _events.emit(FileEvent.DownloadSuccess)
+                _events.emit(FileEvent.DownloadSuccess(listOf(fileToSave.name)))
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 Log.e("FileViewModel", "Save result failed", e)
                 _events.emit(FileEvent.Error("Download failed: ${e.localizedMessage}"))
+            }
+        }
+    }
+
+    fun saveAllResults(treeUri: Uri) {
+        val results = _uiState.value.results
+        if (results.isEmpty()) return
+
+        viewModelScope.launch {
+            try {
+                val fileNames = results.map { it.name }
+                fileRepository.saveAllFilesToTreeUri(results.map { it.file }, treeUri)
+                _events.emit(FileEvent.DownloadSuccess(fileNames))
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e("FileViewModel", "Save all results failed", e)
+                _events.emit(FileEvent.Error("Save failed: ${e.localizedMessage}"))
             }
         }
     }

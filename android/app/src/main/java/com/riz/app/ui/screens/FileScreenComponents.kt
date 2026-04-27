@@ -65,6 +65,7 @@ fun SelectedFilesList(
     files: List<SelectedFile>,
     onAddFile: () -> Unit,
     onRemoveFile: (Uri) -> Unit,
+    onClearAll: () -> Unit,
 ) {
     Column {
         Row(
@@ -73,8 +74,15 @@ fun SelectedFilesList(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(stringResource(R.string.selected_files), style = MaterialTheme.typography.titleMedium)
-            TextButton(onClick = onAddFile) {
-                Text(stringResource(R.string.add_file))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (files.size > 1) {
+                    TextButton(onClick = onClearAll) {
+                        Text(stringResource(R.string.clear))
+                    }
+                }
+                TextButton(onClick = onAddFile) {
+                    Text(stringResource(R.string.add_file))
+                }
             }
         }
         Spacer(modifier = Modifier.height(8.dp))
@@ -173,6 +181,7 @@ fun ResultsList(
     savedFileNames: Set<String>,
     onClear: () -> Unit,
     onDownload: (ResultFile) -> Unit,
+    onSaveAll: () -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -185,10 +194,17 @@ fun ResultsList(
         ) {
             Text(
                 pluralStringResource(R.plurals.result_count, results.size, results.size),
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
             )
-            TextButton(onClick = onClear) {
-                Text(stringResource(R.string.clear))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (results.size > 1) {
+                    TextButton(onClick = onSaveAll) {
+                        Text(stringResource(R.string.save_all))
+                    }
+                }
+                TextButton(onClick = onClear) {
+                    Text(stringResource(R.string.clear))
+                }
             }
         }
         Spacer(modifier = Modifier.height(8.dp))

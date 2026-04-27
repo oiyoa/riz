@@ -104,4 +104,3 @@ fun MessageScreen(viewModel: MessageViewModel) {
         )
     }
 }
-

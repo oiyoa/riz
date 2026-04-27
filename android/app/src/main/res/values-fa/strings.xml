@@ -50,6 +50,7 @@
         <item quantity="other">نتیجه (%1$d فایل)</item>
     </plurals>
     <string name="save_file">ذخیره فایل</string>
+    <string name="save_all">ذخیره همه</string>
     <string name="size_kb">%1$d کیلوبایت</string>
     <string name="size_mb">%1$d مگابایت</string>
 

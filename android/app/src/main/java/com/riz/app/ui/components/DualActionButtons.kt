@@ -10,6 +10,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 
+private const val PROCESSING_DELAY_MS = 400L
+
 @Composable
 fun DualActionButtons(
     primaryText: String,
@@ -25,7 +27,7 @@ fun DualActionButtons(
 
     LaunchedEffect(isProcessing) {
         if (isProcessing) {
-            delay(400)
+            delay(PROCESSING_DELAY_MS)
             showProcessing = true
         } else {
             showProcessing = false

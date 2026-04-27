@@ -65,5 +65,26 @@ class FileRepository(
         }
     }
 
+    suspend fun saveAllFilesToTreeUri(
+        files: List<File>,
+        treeUri: Uri,
+    ) = withContext(Dispatchers.IO) {
+        val documentTree =
+            androidx.documentfile.provider.DocumentFile.fromTreeUri(context, treeUri)
+                ?: error("Cannot access directory")
+
+        for (file in files) {
+            val docFile =
+                documentTree.createFile("application/octet-stream", file.name)
+                    ?: error("Cannot create file ${file.name}")
+
+            context.contentResolver.openOutputStream(docFile.uri)?.use { output ->
+                file.inputStream().use { input ->
+                    input.copyTo(output)
+                }
+            } ?: error("Cannot open output stream for ${file.name}")
+        }
+    }
+
     fun getCacheDir(): File = resultsDir
 }

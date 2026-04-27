@@ -50,6 +50,7 @@
         <item quantity="other">Result (%1$d files)</item>
     </plurals>
     <string name="save_file">Save File</string>
+    <string name="save_all">Save All</string>
     <string name="size_kb">%1$d KB</string>
     <string name="size_mb">%1$d MB</string>
 

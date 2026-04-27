@@ -42,13 +42,20 @@ fun FileScreen(viewModel: FileViewModel) {
             }
         }
 
+    val directoryPickerLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.OpenDocumentTree(),
+        ) { uri ->
+            uri?.let {
+                viewModel.saveAllResults(it)
+            }
+        }
+
     LaunchedEffect(viewModel.events) {
         viewModel.events.collect { event ->
             when (event) {
-                FileViewModel.FileEvent.DownloadSuccess -> {
-                    uiState.pendingDownloadFile?.let { file ->
-                        savedFileNames = savedFileNames + file.name
-                    }
+                is FileViewModel.FileEvent.DownloadSuccess -> {
+                    savedFileNames = savedFileNames + event.fileNames
                     snackbarHostState.showSnackbar(savedMessage)
                 }
                 is FileViewModel.FileEvent.Error -> {
@@ -79,6 +86,7 @@ fun FileScreen(viewModel: FileViewModel) {
                         files = uiState.selectedFiles,
                         onAddFile = { filePickerLauncher.launch(arrayOf("*/*")) },
                         onRemoveFile = { viewModel.removeFile(it) },
+                        onClearAll = { viewModel.clearAllFiles() },
                     )
                 }
             }
@@ -147,6 +155,9 @@ fun FileScreen(viewModel: FileViewModel) {
                     onDownload = {
                         viewModel.prepareDownload(it)
                         downloadLauncher.launch(it.name)
+                    },
+                    onSaveAll = {
+                        directoryPickerLauncher.launch(null)
                     },
                 )
             }

@@ -194,12 +194,17 @@
             </svg>
             انتخاب فایل
           </label>
-          <button id="btn-settings-file" class="btn secondary hidden btn-settings-small">
-            <svg viewBox="0 0 24 24" width="14" height="14">
-              <use href="#i-key" />
-            </svg>
-            <span>تغییر کلید</span>
-          </button>
+          <div style="display: flex; gap: 8px;">
+            <button id="btn-file-clear" class="btn secondary hidden btn-settings-small" type="button">
+              <span>پاک کردن</span>
+            </button>
+            <button id="btn-settings-file" class="btn secondary hidden btn-settings-small" type="button">
+              <svg viewBox="0 0 24 24" width="14" height="14">
+                <use href="#i-key" />
+              </svg>
+              <span>تغییر کلید</span>
+            </button>
+          </div>
         </div>
         <input type="file" id="file-input" multiple accept="*/*" class="file-input-native" />
         <div id="file-info" class="file-info hidden"></div>
