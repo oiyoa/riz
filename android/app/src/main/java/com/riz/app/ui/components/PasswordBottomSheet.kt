@@ -145,6 +145,14 @@ fun PasswordBottomSheet(
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(stringResource(R.string.delete_current_key))
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "v${com.riz.app.BuildConfig.VERSION_NAME}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                )
             }
         }
     }

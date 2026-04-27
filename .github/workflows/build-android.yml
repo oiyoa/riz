@@ -52,9 +52,17 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
-      - name: Generate Checksum
+      - name: Process APKs
         working-directory: ./android/app/build/outputs/apk/release
-        run: sha256sum app-release.apk > checksum-android.txt
+        run: |
+          mv app-arm64-v8a-release.apk riz-${{ env.VERSION_NAME }}-arm64.apk
+          mv app-armeabi-v7a-release.apk riz-${{ env.VERSION_NAME }}-arm32.apk
+          mv app-universal-release.apk riz-${{ env.VERSION_NAME }}-universal.apk
+          
+          echo "### Android APK Checksums" >> $GITHUB_STEP_SUMMARY
+          echo '```text' >> $GITHUB_STEP_SUMMARY
+          sha256sum riz-*.apk >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v7
@@ -62,5 +70,4 @@ jobs:
           name: android-build
           retention-days: 5
           path: |
-            android/app/build/outputs/apk/release/app-release.apk
-            android/app/build/outputs/apk/release/checksum-android.txt
+            android/app/build/outputs/apk/release/riz-*.apk

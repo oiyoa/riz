@@ -39,15 +39,10 @@ jobs:
           name: android-build
           path: ./release-assets/android
 
-      - name: Rename Web Build
-        run: mv ./release-assets/web/index.html ./release-assets/web/riz.html
-
       - name: Create Release
         uses: softprops/action-gh-release@v3
         with:
           files: |
-            release-assets/web/riz.html
-            release-assets/web/checksum-web.txt
-            release-assets/android/app-release.apk
-            release-assets/android/checksum-android.txt
+            release-assets/web/riz-*.zip
+            release-assets/android/*.apk
           generate_release_notes: true

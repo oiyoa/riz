@@ -29,14 +29,24 @@ jobs:
           FILE_SIZE=$(stat --printf="%s" dist/index.html)
           echo "✅ dist/index.html built successfully ($FILE_SIZE bytes)"
 
-      - name: Generate Checksum
+      - name: Set up Versioning
+        run: |
+          VERSION_NAME="${GITHUB_REF_NAME#v}"
+          echo "VERSION_NAME=${VERSION_NAME}" >> $GITHUB_ENV
+
+      - name: Process Web Build
         working-directory: ./dist
-        run: sha256sum index.html > checksum-web.txt
+        run: |
+          mv index.html riz-${{ env.VERSION_NAME }}.html
+          zip riz-${{ env.VERSION_NAME }}.zip riz-${{ env.VERSION_NAME }}.html
+          echo "### Web Build Checksum" >> $GITHUB_STEP_SUMMARY
+          echo '```text' >> $GITHUB_STEP_SUMMARY
+          sha256sum riz-*.zip >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v7
         with:
           name: web-build
           path: |
-            dist/index.html
-            dist/checksum-web.txt
+            dist/riz-*.zip
