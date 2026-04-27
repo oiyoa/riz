@@ -35,6 +35,7 @@ android/.gradle/
 android/.kotlin/
 android/build/
 android/app/build/
+android/app/release/
 android/local.properties
 android/captures/
 android/.externalNativeBuild/
