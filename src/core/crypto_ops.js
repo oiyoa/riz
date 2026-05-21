@@ -1,97 +1,152 @@
-import { 
-  SALT_SIZE, NONCE_SIZE, TAG_LENGTH_BITS, TAG_LENGTH_BYTES, 
-  PROTOCOL_VERSION, HEADER_SIZE, MULTI_FILE_MAGIC 
+import {
+  SALT_SIZE, NONCE_SIZE, TAG_LENGTH_BITS, TAG_LENGTH_BYTES,
+  PROTOCOL_VERSION, PREFIX_SIZE, INNER_HEADER_SIZE, TIMESTAMP_SIZE,
+  LEGACY_PROTOCOL_VERSION, LEGACY_PREFIX_SIZE, LEGACY_INNER_HEADER_SIZE,
+  FLAG_COMPRESSED, MULTI_FILE_MAGIC,
 } from './constants';
 import { compressData, decompressData } from './compression';
 import { getMasterKey, deriveMessageKey } from './kdf';
 import { unpackMultipleFiles } from './packing';
 
-/**
- * Encrypts data using AES-GCM with key derivation and compression.
- */
-export async function encryptData(data, passphrase, filename = "", flags = 0x01) {
+const MIN_CIPHERTEXT_SIZE = PREFIX_SIZE + INNER_HEADER_SIZE + TAG_LENGTH_BYTES;
+const ENTROPY_THRESHOLD = 7.5;
+const ENTROPY_SAMPLE_BYTES = 4096;
+
+export async function encryptData(data, passphrase, filename = "", flags = FLAG_COMPRESSED) {
   const salt = crypto.getRandomValues(new Uint8Array(SALT_SIZE));
   const masterKey = await getMasterKey(passphrase, salt);
   const nonce = crypto.getRandomValues(new Uint8Array(NONCE_SIZE));
-  const messageKey = await deriveMessageKey(masterKey, nonce); // Use nonce as msg salt
-  
+  const messageKey = await deriveMessageKey(masterKey, nonce);
+
   const enc = new TextEncoder();
   const nameBytes = enc.encode(filename);
+  if (nameBytes.length > 254) throw new Error('Filename too long');
+
   const payload = new Uint8Array(1 + nameBytes.length + data.length);
   payload[0] = nameBytes.length;
   payload.set(nameBytes, 1);
   payload.set(data, 1 + nameBytes.length);
 
   const compressed = await compressData(payload);
-  
-  const header = new Uint8Array(HEADER_SIZE);
-  header[0] = flags;
 
-  const fullPlaintext = new Uint8Array(HEADER_SIZE + compressed.length);
-  fullPlaintext.set(header, 0);
-  fullPlaintext.set(compressed, HEADER_SIZE);
+  const fullPlaintext = new Uint8Array(INNER_HEADER_SIZE + compressed.length);
+  const innerView = new DataView(fullPlaintext.buffer);
+  fullPlaintext[0] = PROTOCOL_VERSION;
+  fullPlaintext[1] = flags;
+  innerView.setBigInt64(2, BigInt(Date.now()), false);
+  fullPlaintext.set(compressed, INNER_HEADER_SIZE);
 
-  const prefix = new Uint8Array(1 + NONCE_SIZE + SALT_SIZE);
-  prefix[0] = PROTOCOL_VERSION;
-  prefix.set(nonce, 1);
-  prefix.set(salt, 1 + NONCE_SIZE);
+  const prefix = new Uint8Array(PREFIX_SIZE);
+  prefix.set(nonce, 0);
+  prefix.set(salt, NONCE_SIZE);
 
   const encrypted = new Uint8Array(await crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv: nonce, tagLength: TAG_LENGTH_BITS, additionalData: prefix }, 
-    messageKey, 
+    { name: 'AES-GCM', iv: nonce, tagLength: TAG_LENGTH_BITS, additionalData: prefix },
+    messageKey,
     fullPlaintext
   ));
-  
+
   const out = new Uint8Array(prefix.length + encrypted.length);
   out.set(prefix, 0);
   out.set(encrypted, prefix.length);
   return out;
 }
 
-/**
- * Decrypts data and handles decompression and multi-file unpacking.
- */
 export async function decryptData(packed, passphrase) {
-  const PROTO_VER = packed[0];
-  if (PROTO_VER !== PROTOCOL_VERSION) throw new Error('Unsupported protocol version: ' + PROTO_VER);
+  try {
+    return await decryptV3(packed, passphrase);
+  } catch (err) {
+    // Fall back to legacy v1 only when the first byte looks like that format's version tag.
+    if (packed.length >= LEGACY_PREFIX_SIZE && packed[0] === LEGACY_PROTOCOL_VERSION) {
+      return await decryptLegacyV1(packed, passphrase);
+    }
+    throw err;
+  }
+}
 
-  const PREFIX_LEN = 1 + NONCE_SIZE + SALT_SIZE;
-  const MIN_LEN = PREFIX_LEN + HEADER_SIZE + TAG_LENGTH_BYTES;
-  if (packed.length < MIN_LEN) throw new Error('Invalid ciphertext length');
-  
-  const nonce = packed.subarray(1, 1 + NONCE_SIZE);
-  const headerMasterSalt = packed.subarray(1 + NONCE_SIZE, PREFIX_LEN);
-  const prefix = packed.subarray(0, PREFIX_LEN);
-  const enc = packed.subarray(PREFIX_LEN);
-  
-  const masterKey = await getMasterKey(passphrase, headerMasterSalt);
-  const messageKey = await deriveMessageKey(masterKey, nonce); // Use nonce as msg salt
-  
-  const decryptedBuffer = await crypto.subtle.decrypt(
-    { name: 'AES-GCM', iv: nonce, tagLength: TAG_LENGTH_BITS, additionalData: prefix }, 
-    messageKey, 
-    enc
-  );
-  
-  const fullDecrypted = new Uint8Array(decryptedBuffer);
-  const dec = await decompressData(fullDecrypted.subarray(HEADER_SIZE));
-
-  if (dec[0] === MULTI_FILE_MAGIC) {
-    return { multiFile: true, files: unpackMultipleFiles(dec) };
+async function decryptV3(packed, passphrase) {
+  if (packed.length < MIN_CIPHERTEXT_SIZE) {
+    throw new Error('Invalid ciphertext length');
   }
 
+  const nonce = packed.subarray(0, NONCE_SIZE);
+  const salt = packed.subarray(NONCE_SIZE, PREFIX_SIZE);
+  const prefix = packed.subarray(0, PREFIX_SIZE);
+  const enc = packed.subarray(PREFIX_SIZE);
+
+  const masterKey = await getMasterKey(passphrase, salt);
+  const messageKey = await deriveMessageKey(masterKey, nonce);
+
+  const decryptedBuffer = await crypto.subtle.decrypt(
+    { name: 'AES-GCM', iv: nonce, tagLength: TAG_LENGTH_BITS, additionalData: prefix },
+    messageKey,
+    enc
+  );
+  const fullDecrypted = new Uint8Array(decryptedBuffer);
+
+  if (fullDecrypted[0] !== PROTOCOL_VERSION) {
+    throw new Error('Unrecognized inner version: ' + fullDecrypted[0]);
+  }
+
+  const innerView = new DataView(fullDecrypted.buffer, fullDecrypted.byteOffset, fullDecrypted.byteLength);
+  const createdAt = Number(innerView.getBigInt64(2, false));
+
+  const dec = await decompressData(fullDecrypted.subarray(INNER_HEADER_SIZE));
+  return parsePlaintext(dec, createdAt);
+}
+
+async function decryptLegacyV1(packed, passphrase) {
+  const minLen = LEGACY_PREFIX_SIZE + LEGACY_INNER_HEADER_SIZE + TAG_LENGTH_BYTES;
+  if (packed.length < minLen) throw new Error('Invalid ciphertext length');
+
+  const nonce = packed.subarray(1, 1 + NONCE_SIZE);
+  const salt = packed.subarray(1 + NONCE_SIZE, LEGACY_PREFIX_SIZE);
+  const prefix = packed.subarray(0, LEGACY_PREFIX_SIZE);
+  const enc = packed.subarray(LEGACY_PREFIX_SIZE);
+
+  const masterKey = await getMasterKey(passphrase, salt);
+  const messageKey = await deriveMessageKey(masterKey, nonce);
+
+  const decryptedBuffer = await crypto.subtle.decrypt(
+    { name: 'AES-GCM', iv: nonce, tagLength: TAG_LENGTH_BITS, additionalData: prefix },
+    messageKey,
+    enc
+  );
+  const fullDecrypted = new Uint8Array(decryptedBuffer);
+  const dec = await decompressData(fullDecrypted.subarray(LEGACY_INNER_HEADER_SIZE));
+  return parsePlaintext(dec, null);
+}
+
+function parsePlaintext(dec, createdAt) {
+  if (dec[0] === MULTI_FILE_MAGIC) {
+    return { multiFile: true, files: unpackMultipleFiles(dec), createdAt };
+  }
   const nameLen = dec[0];
   const filename = new TextDecoder().decode(dec.subarray(1, 1 + nameLen));
   const data = dec.subarray(1 + nameLen);
-  return { multiFile: false, data, filename };
+  return { multiFile: false, data, filename, createdAt };
 }
 
-/**
- * Checks if a buffer likely contains encrypted data from this app.
- */
+// Heuristic for the action-priority swap, not a security gate. v3 blobs are
+// indistinguishable from random by header alone, so we fall back to entropy.
 export function isEncryptedBuffer(buffer) {
-  if (!buffer || buffer.length < (1 + NONCE_SIZE + SALT_SIZE + HEADER_SIZE + TAG_LENGTH_BYTES)) {
-    return false;
+  if (!buffer) return false;
+  if (buffer.length < MIN_CIPHERTEXT_SIZE) return false;
+  if (buffer[0] === LEGACY_PROTOCOL_VERSION) return true;
+  const sampleLen = Math.min(ENTROPY_SAMPLE_BYTES, buffer.length);
+  return shannonEntropy(buffer, sampleLen) >= ENTROPY_THRESHOLD;
+}
+
+function shannonEntropy(data, len) {
+  const freq = new Uint32Array(256);
+  for (let i = 0; i < len; i++) freq[data[i]]++;
+  let h = 0;
+  const ln2 = Math.log(2);
+  for (let i = 0; i < 256; i++) {
+    const f = freq[i];
+    if (f === 0) continue;
+    const p = f / len;
+    h -= p * (Math.log(p) / ln2);
   }
-  return buffer[0] === PROTOCOL_VERSION;
+  return h;
 }

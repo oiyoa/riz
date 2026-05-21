@@ -1,20 +1,26 @@
 package com.riz.app.ui.theme
 
 import android.app.Activity
+import android.os.Build
+import android.view.View
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.foundation.text.selection.TextSelectionColors
-import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.core.text.TextUtilsCompat
-import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme =
@@ -76,15 +82,24 @@ private val LightColorScheme =
 @Composable
 fun RizTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    dynamicColor: Boolean = true,
     content: @Composable () -> Unit,
 ) {
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val context = LocalContext.current
+    val colorScheme =
+        when {
+            dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+                if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+            }
+            darkTheme -> DarkColorScheme
+            else -> LightColorScheme
+        }
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
-            val context = view.context
+            val viewContext = view.context
             var activity: Activity? = null
-            var currentContext = context
+            var currentContext = viewContext
             while (currentContext is android.content.ContextWrapper) {
                 if (currentContext is Activity) {
                     activity = currentContext
@@ -103,16 +118,17 @@ fun RizTheme(
 
     val customTextSelectionColors =
         TextSelectionColors(
-            handleColor = ThemeSelectionHandle,
-            backgroundColor = ThemeSelectionBackground,
+            handleColor = colorScheme.primary,
+            backgroundColor = colorScheme.primary.copy(alpha = 0.4f),
         )
 
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
+        shapes = RizShapes,
     ) {
         val locale = LocalConfiguration.current.locales[0]
-        val isRtl = TextUtilsCompat.getLayoutDirectionFromLocale(locale) == ViewCompat.LAYOUT_DIRECTION_RTL
+        val isRtl = TextUtilsCompat.getLayoutDirectionFromLocale(locale) == View.LAYOUT_DIRECTION_RTL
         val layoutDirection = if (isRtl) LayoutDirection.Rtl else LayoutDirection.Ltr
 
         CompositionLocalProvider(

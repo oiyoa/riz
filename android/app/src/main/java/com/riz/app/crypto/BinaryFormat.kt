@@ -28,31 +28,6 @@ object BinaryFormat {
     private const val INT_SIZE = 4
     private const val SHORT_SIZE = 2
 
-    fun packMultipleFiles(files: List<FileEntry>): ByteArray {
-        val encodedEntries =
-            files.map { file ->
-                val nameBytes = file.name.toByteArray(Charsets.UTF_8)
-                require(nameBytes.size <= MAX_FILENAME_LEN) { "Filename too long: ${file.name}" }
-                nameBytes to file.data
-            }
-
-        // 1 (magic) + 2 (count) = 3
-        val totalSize = 3 + encodedEntries.sumOf { (name, data) -> 1 + name.size + INT_SIZE + data.size }
-
-        return ByteBuffer
-            .allocate(totalSize)
-            .apply {
-                put(MULTI_FILE_MAGIC)
-                putShort(files.size.toShort())
-                for ((name, data) in encodedEntries) {
-                    put(name.size.toByte())
-                    put(name)
-                    putInt(data.size)
-                    put(data)
-                }
-            }.array()
-    }
-
     fun unpackMultipleFiles(dec: ByteArray): List<FileEntry> {
         val buffer = ByteBuffer.wrap(dec)
         require(buffer.hasRemaining()) { "Empty buffer during multi-file unpack" }

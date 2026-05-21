@@ -1,9 +1,8 @@
 package com.riz.app.ui.components
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -11,7 +10,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.riz.app.R
@@ -28,16 +26,16 @@ fun WelcomeScreen(onSetKey: () -> Unit) {
             verticalArrangement = Arrangement.Center,
         ) {
             Surface(
-                modifier = Modifier.size(160.dp),
-                shape = RoundedCornerShape(40.dp),
-                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f),
+                modifier = Modifier.size(140.dp),
+                shape = MaterialTheme.shapes.extraLarge,
+                color = MaterialTheme.colorScheme.surfaceVariant,
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_launcher_foreground),
                         contentDescription = null,
                         tint = Color.Unspecified,
-                        modifier = Modifier.size(120.dp),
+                        modifier = Modifier.size(110.dp),
                     )
                 }
             }
@@ -46,8 +44,7 @@ fun WelcomeScreen(onSetKey: () -> Unit) {
 
             Text(
                 stringResource(R.string.welcome_to_riz),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.headlineSmall,
                 textAlign = TextAlign.Center,
             )
 
@@ -56,22 +53,24 @@ fun WelcomeScreen(onSetKey: () -> Unit) {
             Text(
                 stringResource(R.string.welcome_desc),
                 textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
 
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
             Button(
                 onClick = onSetKey,
-                modifier = Modifier.fillMaxWidth().height(64.dp),
-                shape = RoundedCornerShape(20.dp),
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp),
+                modifier = Modifier.fillMaxWidth(),
             ) {
-                Icon(imageVector = Icons.Outlined.Settings, contentDescription = null)
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(stringResource(R.string.set_compression_key), style = MaterialTheme.typography.titleMedium)
+                Icon(
+                    imageVector = Icons.Outlined.Lock,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(stringResource(R.string.create_password))
             }
         }
     }

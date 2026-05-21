@@ -5,8 +5,8 @@ import android.content.SharedPreferences
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
-import android.util.Log
 import androidx.core.content.edit
+import com.riz.app.util.AppLog
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -63,7 +63,7 @@ class PasswordStore(
                 Base64.encodeToString(iv, Base64.DEFAULT),
             )
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to wrap key", e)
+            AppLog.e(TAG, "Failed to wrap key", e)
             null
         }
 
@@ -79,7 +79,7 @@ class PasswordStore(
             cipher.init(Cipher.DECRYPT_MODE, getOrCreateSecretKey(), spec)
             cipher.doFinal(enc)
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to unwrap key", e)
+            AppLog.e(TAG, "Failed to unwrap key", e)
             null
         }
 
@@ -88,6 +88,8 @@ class PasswordStore(
         val iv = prefs?.getString(IV_KEY, null)
         return if (enc != null && iv != null) unwrapKey(enc, iv)?.toString(Charsets.UTF_8) else null
     }
+
+    fun hasPassword(): Boolean = prefs?.contains(PWD_KEY) == true && prefs.contains(IV_KEY)
 
     fun setPassword(password: String): Boolean {
         if (password == getPassword()) return false // Same password, ignore

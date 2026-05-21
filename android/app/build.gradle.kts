@@ -17,8 +17,9 @@ android {
         versionName = System.getenv("VERSION_NAME") ?: "1.0"
     }
 
+    @Suppress("UnstableApiUsage")
     androidResources {
-        localeFilters += listOf("fa")
+        localeFilters += listOf("en", "fa")
     }
 
     signingConfigs {
@@ -69,6 +70,10 @@ android {
         abortOnError = true
         checkReleaseBuilds = true
         warningsAsErrors = true
+        // Network-dependent "newer version available" notices are not actionable signal.
+        disable += "AndroidGradlePluginVersion"
+        disable += "GradleDependency"
+        disable += "NewerVersionAvailable"
     }
 }
 
@@ -107,6 +112,9 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.documentfile)
+    implementation(libs.androidx.biometric)
+    implementation(libs.androidx.fragment.ktx)
+    implementation(libs.zxcvbn)
 
     debugImplementation(libs.androidx.ui.tooling)
 }

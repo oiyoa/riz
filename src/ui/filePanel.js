@@ -32,7 +32,29 @@ export function showFileError(msg) {
   revokeAllUrls();
 }
 
+// Mirrors ProcessingIndicator.kt: don't show the loading visual unless the op
+// outlives 400ms, so sub-second compressions don't produce a spinner flash.
+const LOADING_DELAY_MS = 400;
+let loadingTimer = null;
+let pendingLoading = null;
+
+function applyLoadingVisuals(btn, status) {
+  const span = btn.querySelector('span');
+  btn.dataset.originalText = span.textContent;
+  span.textContent = status;
+  btn.classList.add('loading');
+
+  const progress = document.createElement('div');
+  progress.className = 'btn-progress';
+  btn.appendChild(progress);
+}
+
 function hideLoading() {
+  if (loadingTimer) {
+    clearTimeout(loadingTimer);
+    loadingTimer = null;
+  }
+  pendingLoading = null;
   const loadingBtn = document.querySelector('.btn.loading');
   if (loadingBtn) {
     const originalText = loadingBtn.dataset.originalText;
@@ -46,17 +68,15 @@ function hideLoading() {
 
 function showLoading(btn, status) {
   hideLoading();
-  const span = btn.querySelector('span');
-  btn.dataset.originalText = span.textContent;
-  span.textContent = status;
-  btn.classList.add('loading');
-  
-  const progress = document.createElement('div');
-  progress.className = 'btn-progress';
-  btn.appendChild(progress);
+  pendingLoading = { btn, status };
+  loadingTimer = setTimeout(() => {
+    loadingTimer = null;
+    if (pendingLoading) applyLoadingVisuals(pendingLoading.btn, pendingLoading.status);
+  }, LOADING_DELAY_MS);
 }
 
 function updateLoading(status) {
+  if (pendingLoading) pendingLoading.status = status;
   const loadingBtn = document.querySelector('.btn.loading');
   if (loadingBtn) {
     const span = loadingBtn.querySelector('span');
@@ -74,7 +94,7 @@ async function updateActionPriorities() {
 
   try {
     const firstFile = files[0];
-    const buffer = await firstFile.slice(0, 100).arrayBuffer();
+    const buffer = await firstFile.slice(0, 4096).arrayBuffer();
     const isEnc = isEncryptedBuffer(new Uint8Array(buffer));
 
     if (isEnc) {

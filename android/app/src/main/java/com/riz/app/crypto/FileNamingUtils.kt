@@ -1,32 +1,55 @@
 package com.riz.app.crypto
 
-import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
+import kotlin.random.Random
 
 object FileNamingUtils {
-    fun generateResultFilename(
-        partNum: Int,
-        totalParts: Int,
-    ): String {
-        val sdf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US)
-        val dt = sdf.format(Date())
+    private val SEQUENCE_REGEX = "_(\\d{3})\\.[^.]+$".toRegex()
+    private val SEPARATORS = listOf("_", "-")
+    private const val DECIMAL_DIGITS = 10
+
+    fun generateResultFilenames(totalParts: Int): List<String> {
+        val base = randomBaseName()
+        val ext = FileExtensions.ALL.random()
         return if (totalParts <= 1) {
-            "readme_$dt.txt"
+            listOf("$base.$ext")
         } else {
-            "readme_${dt}_${String.format(Locale.US, "%03d", partNum)}.txt"
+            List(totalParts) { i ->
+                "${base}_${String.format(Locale.US, "%03d", i + 1)}.$ext"
+            }
         }
     }
 
     fun <T> sortFileParts(files: List<Pair<String, T>>): List<T>? {
-        val regex = "_(\\d{3})\\.txt$".toRegex()
         val seq =
             files
                 .mapNotNull { (name, original) ->
-                    val match = regex.find(name)
+                    val match = SEQUENCE_REGEX.find(name)
                     if (match != null) Pair(match.groupValues[1].toInt(), original) else null
                 }.sortedBy { it.first }
 
         return if (seq.size == files.size) seq.map { it.second } else null
+    }
+
+    private fun randomBaseName(): String {
+        val tokenCount = Random.nextInt(1, 4)
+        val separator = SEPARATORS.random()
+        val tokens =
+            buildList {
+                add(PasswordPolicy.pickRandomWords(1).first())
+                repeat(tokenCount - 1) {
+                    if (Random.nextFloat() < 0.4f) {
+                        add(randomDigits())
+                    } else {
+                        add(PasswordPolicy.pickRandomWords(1).first())
+                    }
+                }
+            }
+        return tokens.joinToString(separator)
+    }
+
+    private fun randomDigits(): String {
+        val count = Random.nextInt(2, 7)
+        return (1..count).joinToString("") { Random.nextInt(DECIMAL_DIGITS).toString() }
     }
 }

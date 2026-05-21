@@ -409,6 +409,131 @@ textarea[readonly] {
   font-size: 0.9rem;
 }
 
+/* Supporting text area below the password input. Holds the compact strength
+   meter or, when relevant, a short error/hint. Sized so the layout doesn't
+   jump as the content swaps in and out. */
+.password-supporting {
+  min-height: 18px;
+  margin: 0.4rem 0 0.6rem 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.password-supporting.is-error {
+  color: var(--error);
+}
+
+.strength-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.strength-meter {
+  display: flex;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.strength-meter-seg {
+  width: 14px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--border);
+  transition: background-color 0.2s;
+}
+
+.strength-row[data-score="0"] .strength-meter-seg:nth-child(-n+1),
+.strength-row[data-score="1"] .strength-meter-seg:nth-child(-n+1),
+.strength-row[data-score="2"] .strength-meter-seg:nth-child(-n+2),
+.strength-row[data-score="3"] .strength-meter-seg:nth-child(-n+3),
+.strength-row[data-score="4"] .strength-meter-seg {
+  background: currentColor;
+}
+
+.strength-row[data-score="0"],
+.strength-row[data-score="1"] { color: var(--error); }
+.strength-row[data-score="2"] { color: #f59e0b; }
+.strength-row[data-score="3"],
+.strength-row[data-score="4"] { color: var(--theme-tertiary); }
+
+.strength-label {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: currentColor;
+}
+
+.password-generator-row {
+  display: flex;
+  justify-content: center;
+  margin: 0 0 1rem 0;
+}
+
+/* Filled assist-chip variant: softly tinted with the tertiary (mint) accent
+   so the chip reads as a real affordance against the sheet surface, not an
+   outlined hint blending into the border. Matches the Android AssistChip
+   with secondaryContainer styling. */
+.btn-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(142, 210, 201, 0.12);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: var(--theme-tertiary);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 0.45rem 0.95rem;
+  cursor: pointer;
+  user-select: none;
+  min-height: 36px;
+  transition: background-color 0.15s;
+}
+
+.btn-chip:hover {
+  background: rgba(142, 210, 201, 0.18);
+}
+
+.btn-chip:active {
+  background: rgba(142, 210, 201, 0.24);
+}
+
+.btn-chip svg {
+  color: var(--theme-tertiary);
+}
+
+/* Destructive zone, visible only in settings mode. Separated from Save by a
+   top border so users can see at a glance that Delete is a different kind of
+   action — not the next step after Save. */
+.password-delete-row {
+  margin-top: 1.25rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: center;
+}
+
+.btn-text-danger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: var(--error);
+  font-family: inherit;
+  font-size: 0.85rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 6px;
+  cursor: pointer;
+  min-height: 40px;
+}
+
+.btn-text-danger:active {
+  background: rgba(239, 68, 68, 0.1);
+}
+
 .btn-settings-small {
   min-height: 28px;
   padding: 0.2rem 0.6rem;

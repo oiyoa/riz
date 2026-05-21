@@ -1,9 +1,4 @@
-import { 
-  SALT_SIZE, NONCE_SIZE, TAG_LENGTH_BITS, 
-  HEADER_SIZE
-} from './constants';
-import { compressData } from './compression';
-import { getMasterKey, deriveMessageKey } from './kdf';
+import { FLAG_COMPRESSED, FLAG_MULTI_FILE } from './constants';
 import { packMultipleFiles } from './packing';
 import { encryptData, decryptData } from './crypto_ops';
 import { Base64Url } from './base64url';
@@ -45,8 +40,7 @@ self.onmessage = async (e) => {
         } else {
           const packed = packMultipleFiles(filesData.map(f => ({ name: f.name, data: new Uint8Array(f.buffer) })));
           reportProgress('در حال فشرده‌سازی...');
-          // encryptData handles compression internally
-          encrypted = await encryptData(packed, pwd, "", 0x03); // 0x03 = Compressed | Multi-file
+          encrypted = await encryptData(packed, pwd, "", FLAG_COMPRESSED | FLAG_MULTI_FILE);
         }
 
         reportProgress('در حال ذخیره‌سازی...');

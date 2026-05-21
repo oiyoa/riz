@@ -1,8 +1,11 @@
 package com.riz.app.data.repository
 
+import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
+import android.provider.DocumentsContract
 import android.provider.OpenableColumns
+import com.riz.app.crypto.MetadataSpoofer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -36,6 +39,23 @@ class FileRepository(
             context.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: ByteArray(0)
         }
 
+    suspend fun readFilePrefix(
+        uri: Uri,
+        maxBytes: Int,
+    ): ByteArray =
+        withContext(Dispatchers.IO) {
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                val buf = ByteArray(maxBytes)
+                var off = 0
+                while (off < maxBytes) {
+                    val n = input.read(buf, off, maxBytes - off)
+                    if (n <= 0) break
+                    off += n
+                }
+                if (off == maxBytes) buf else buf.copyOf(off)
+            } ?: ByteArray(0)
+        }
+
     suspend fun writeResultFile(
         name: String,
         bytes: ByteArray,
@@ -43,6 +63,7 @@ class FileRepository(
         withContext(Dispatchers.IO) {
             val file = File(resultsDir, name)
             file.writeBytes(bytes)
+            file.setLastModified(MetadataSpoofer.randomPastTimestamp())
             file
         }
 
@@ -63,6 +84,7 @@ class FileRepository(
                 input.copyTo(output)
             }
         }
+        spoofUriTimestamp(destinationUri)
     }
 
     suspend fun saveAllFilesToTreeUri(
@@ -83,8 +105,20 @@ class FileRepository(
                     input.copyTo(output)
                 }
             } ?: error("Cannot open output stream for ${file.name}")
+            spoofUriTimestamp(docFile.uri)
         }
     }
 
-    fun getCacheDir(): File = resultsDir
+    private fun spoofUriTimestamp(uri: Uri) {
+        runCatching {
+            val values =
+                ContentValues().apply {
+                    put(
+                        DocumentsContract.Document.COLUMN_LAST_MODIFIED,
+                        MetadataSpoofer.randomPastTimestamp(),
+                    )
+                }
+            context.contentResolver.update(uri, values, null, null)
+        }
+    }
 }

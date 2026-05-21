@@ -1,70 +1,112 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Riz</string>
-    
-    <!-- Password Bottom Sheet -->
-    <string name="key_settings">Key Settings</string>
-    <string name="set_new_key">Set New Key</string>
-    <string name="key_settings_desc">You can view or change your key.</string>
-    <string name="set_new_key_desc">Choose a key for compression and security of your information.</string>
-    <string name="key_label">Key</string>
-    <string name="enter_password">Enter password…</string>
+
+    <!-- Password sheet -->
+    <string name="password_settings">Password</string>
+    <string name="create_password">Create password</string>
+    <string name="password_settings_desc">View or change your password.</string>
+    <string name="create_password_desc">Choose a password to compress and protect your files and messages.</string>
+    <string name="password_label">Password</string>
     <string name="hide">Hide</string>
     <string name="show">Show</string>
-    <string name="generate_suggested_key">Generate suggested key</string>
-    <string name="save_changes">Save Changes</string>
-    <string name="confirm_and_continue">Confirm and Continue</string>
-    <string name="delete_current_key">Delete Current Key</string>
+    <string name="generate_strong_password">Suggest a passphrase</string>
+    <string name="save_changes">Save changes</string>
+    <string name="confirm_and_continue">Confirm and continue</string>
+    <string name="delete_password">Delete password</string>
 
-    <!-- Main Screen -->
-    <string name="settings">Settings</string>
-    <string name="tab_text">Text</string>
-    <string name="tab_file">File</string>
+    <!-- Password strength -->
+    <string name="strength_very_weak">Very weak</string>
+    <string name="strength_weak">Weak</string>
+    <string name="strength_fair">Fair</string>
+    <string name="strength_strong">Strong</string>
+    <string name="strength_very_strong">Very strong</string>
+    <string name="strength_too_weak_error">Too easy to guess. Try a longer one — or use the suggested passphrase.</string>
+
+    <!-- Saved-password indicator -->
+    <string name="password_saved_status">Password saved</string>
+
+    <!-- Biometric reveal -->
+    <string name="reveal_hint">Tap the eye to view your current password.</string>
+    <string name="biometric_prompt_title">View password</string>
+    <string name="biometric_prompt_subtitle">Authenticate to view your encryption key.</string>
+    <string name="biometric_unavailable">No screen lock is set up. Please set a device lock to view your password.</string>
+
+    <!-- Main / nav -->
+    <string name="settings">Password settings</string>
+    <string name="cleared_message_for_files">Cleared message</string>
+    <string name="cleared_files_for_message">Cleared selected files</string>
+
+    <!-- Welcome -->
     <string name="welcome_to_riz">Welcome to Riz</string>
-    <string name="welcome_desc">To securely and quickly compress files and messages, you must first set a dedicated key.</string>
-    <string name="set_compression_key">Set Compression Key</string>
+    <string name="welcome_desc">Compress and protect your files and messages with a single password.</string>
+
+    <!-- Shared -->
     <string name="cancel">Cancel</string>
-    <string name="delete">Delete</string>
+    <string name="delete">Remove</string>
     <string name="share">Share</string>
     <string name="save">Save</string>
     <string name="saved">Saved</string>
-    <string name="file_saved">File saved successfully</string>
+    <string name="open">Open</string>
+    <string name="no_app_to_open">No app available to open this file</string>
+    <string name="file_saved">Saved to your device</string>
 
-    <!-- Message Screen -->
-    <string name="message_placeholder">Write your text or paste compressed text…</string>
-    <string name="paste">Paste</string>
+    <!-- Message tab -->
+    <string name="message_placeholder">Write a message or paste a compressed packet…</string>
+    <string name="paste">Paste from clipboard</string>
     <string name="clear">Clear</string>
-    <string name="result">Result:</string>
     <string name="copy">Copy</string>
     <string name="copied_to_clipboard">Copied to clipboard</string>
-    <string name="compress">Compress</string>
-    <string name="extract">Extract</string>
+    <string name="compress_btn">Compress</string>
+    <string name="extract_btn">Extract</string>
 
-    <!-- File Screen -->
-    <string name="select_files_desc">Select files to compress or extract</string>
-    <string name="selected_files">Selected files:</string>
-    <string name="add_file">Add File</string>
-    <string name="split_output">Split output file into smaller parts</string>
-    <plurals name="result_count">
-        <item quantity="one">Result (%1$d file)</item>
-        <item quantity="other">Result (%1$d files)</item>
+    <!-- Files tab -->
+    <string name="selected_files">Selected files</string>
+    <string name="add_file">Add file</string>
+    <string name="empty_files_hint">Compress files into one secure packet, or extract a packet you received.</string>
+    <string name="empty_files_button">Choose files</string>
+    <string name="drop_to_add">Drop to add</string>
+    <string name="split_for_messaging">Split into smaller files</string>
+    <string name="advanced_options">Advanced</string>
+    <string name="save_all_to_folder">Save all to folder</string>
+    <string name="save_all">Save all</string>
+
+    <!-- Processing -->
+    <string name="working_on_message">Working on your message…</string>
+    <plurals name="working_on_n_files">
+        <item quantity="one">Working on %1$d file…</item>
+        <item quantity="other">Working on %1$d files…</item>
     </plurals>
-    <string name="save_file">Save File</string>
-    <string name="save_all">Save All</string>
+    <string name="step_preparing">Preparing</string>
+    <string name="step_processing">Processing</string>
+    <string name="step_saving">Saving</string>
+
+    <!-- Done -->
+    <string name="result_compressed">Compressed</string>
+    <string name="result_extracted">Extracted</string>
+    <string name="result_message_compressed_desc">Send or save the packet to share securely.</string>
+    <plurals name="result_files_compressed_desc">
+        <item quantity="one">%1$d packet · %2$s</item>
+        <item quantity="other">%1$d packets · %2$s</item>
+    </plurals>
+    <plurals name="result_files_extracted_desc">
+        <item quantity="one">%1$d file · %2$s</item>
+        <item quantity="other">%1$d files · %2$s</item>
+    </plurals>
+    <string name="created_at">Created %1$s (%2$s)</string>
+    <string name="just_now">just now</string>
+
+    <!-- Sizes -->
     <string name="size_kb">%1$d KB</string>
     <string name="size_mb">%1$d MB</string>
 
-    <!-- ViewModels & Status -->
+    <!-- Errors -->
     <string name="error_enter_text">Please enter your text.</string>
-    <string name="error_set_key_first">Please set the dedicated key first.</string>
-    <string name="status_compressing">Compressing…</string>
-    <string name="status_extracting">Extracting…</string>
-    <string name="error_generic">An error occurred. Please check your key.</string>
-    <string name="error_enter_compressed_text">Please enter the compressed text.</string>
-    <string name="error_wrong_key_or_corrupt">Wrong key or data is corrupted.</string>
+    <string name="error_enter_compressed_text">Please paste the compressed packet.</string>
+    <string name="error_set_password_first">Please set a password first.</string>
+    <string name="error_wrong_password_or_corrupt">Wrong password or the packet is damaged.</string>
+    <string name="error_generic">Something went wrong. Please check your password.</string>
+    <string name="error_file_processing">Could not process the file. Please check your password.</string>
     <string name="error_select_file">Please select a file.</string>
-    <string name="status_preparing">Preparing…</string>
-    <string name="status_saving">Saving…</string>
-    <string name="error_file_processing">File processing failed. Please check your key.</string>
-    <string name="error_invalid_parts">Selected files do not have correct numbering. Please select consecutive parts.</string>
+    <string name="error_invalid_parts">These parts are not numbered correctly. Please select consecutive parts.</string>
 </resources>

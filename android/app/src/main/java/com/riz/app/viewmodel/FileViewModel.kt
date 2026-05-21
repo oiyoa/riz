@@ -1,15 +1,17 @@
 package com.riz.app.viewmodel
 
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.riz.app.crypto.BinaryFormat
 import com.riz.app.crypto.FileEntry
 import com.riz.app.crypto.FileNamingUtils
+import com.riz.app.crypto.RizDetector
 import com.riz.app.data.repository.FileRepository
 import com.riz.app.data.repository.SecurityRepository
+import com.riz.app.util.AppLog
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,8 +21,11 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import javax.crypto.AEADBadTagException
+
+private const val DETECTION_HEAD_BYTES = 4096
 
 class FileViewModel(
     private val fileRepository: FileRepository,
@@ -32,7 +37,18 @@ class FileViewModel(
     private val _events = MutableSharedFlow<FileEvent>()
     val events: SharedFlow<FileEvent> = _events.asSharedFlow()
 
+    // replay=1 so the HomeScreen collector receives the event even if the
+    // intake happens during MainActivity.onCreate, before composition mounts.
+    private val _shareIntake = MutableSharedFlow<Unit>(replay = 1)
+    val shareIntake: SharedFlow<Unit> = _shareIntake.asSharedFlow()
+
+    fun ingestSharedFiles(uris: List<Uri>) {
+        setFiles(uris)
+        viewModelScope.launch { _shareIntake.emit(Unit) }
+    }
+
     private var currentJob: Job? = null
+    private var detectionJob: Job? = null
 
     sealed class FileEvent {
         data class DownloadSuccess(val fileNames: List<String>) : FileEvent()
@@ -40,17 +56,40 @@ class FileViewModel(
         data class Error(
             val message: String,
         ) : FileEvent()
+
+        data class Completed(val isExtract: Boolean) : FileEvent()
     }
 
     fun setFiles(uris: List<Uri>) {
         viewModelScope.launch {
             val files =
-                uris.mapNotNull { uri ->
-                    fileRepository.getFileInfo(uri)?.let { (name, size) ->
-                        SelectedFile(uri, name, size)
+                withContext(Dispatchers.IO) {
+                    uris.mapNotNull { uri ->
+                        fileRepository.getFileInfo(uri)?.let { (name, size) ->
+                            SelectedFile(uri, name, size)
+                        }
                     }
                 }
             _uiState.update { it.copy(selectedFiles = files, results = emptyList(), error = null) }
+            runDetection()
+        }
+    }
+
+    fun addFiles(uris: List<Uri>) {
+        viewModelScope.launch {
+            val existing = _uiState.value.selectedFiles
+            val existingUris = existing.mapTo(mutableSetOf()) { it.uri }
+            val newFiles =
+                uris
+                    .filter { it !in existingUris }
+                    .mapNotNull { uri ->
+                        fileRepository.getFileInfo(uri)?.let { (name, size) ->
+                            SelectedFile(uri, name, size)
+                        }
+                    }
+            if (newFiles.isEmpty()) return@launch
+            _uiState.update { it.copy(selectedFiles = existing + newFiles, error = null) }
+            runDetection()
         }
     }
 
@@ -62,23 +101,81 @@ class FileViewModel(
         val currentFiles = _uiState.value.selectedFiles.toMutableList()
         currentFiles.removeAll { it.uri == uri }
         _uiState.update { it.copy(selectedFiles = currentFiles) }
+        runDetection()
     }
 
     fun clearAllFiles() {
+        detectionJob?.cancel()
         viewModelScope.launch {
             fileRepository.clearCache()
-            _uiState.update { it.copy(selectedFiles = emptyList(), results = emptyList(), error = null) }
+            _uiState.update {
+                it.copy(
+                    selectedFiles = emptyList(),
+                    results = emptyList(),
+                    error = null,
+                    detection = RizDetector.Result.NotRiz,
+                    isDetecting = false,
+                )
+            }
         }
+    }
+
+    // First sorted part holds the AEAD prefix; only it can be probed.
+    private fun pickLeadingFile(files: List<SelectedFile>): SelectedFile? {
+        if (files.isEmpty()) return null
+        if (files.size == 1) return files[0]
+        val sorted = FileNamingUtils.sortFileParts(files.map { it.name to it })
+        return sorted?.firstOrNull() ?: files[0]
+    }
+
+    private fun runDetection() {
+        detectionJob?.cancel()
+        val leading = pickLeadingFile(_uiState.value.selectedFiles)
+        if (leading == null) {
+            _uiState.update { it.copy(detection = RizDetector.Result.NotRiz, isDetecting = false) }
+            return
+        }
+        _uiState.update { it.copy(detection = RizDetector.Result.MaybeRiz, isDetecting = true) }
+        detectionJob =
+            viewModelScope.launch {
+                try {
+                    val head = fileRepository.readFilePrefix(leading.uri, DETECTION_HEAD_BYTES)
+                    val screen = RizDetector.screenFileBytes(head)
+                    if (screen == RizDetector.Result.NotRiz) {
+                        _uiState.update {
+                            it.copy(detection = RizDetector.Result.NotRiz, isDetecting = false)
+                        }
+                        return@launch
+                    }
+                    val pwd = securityRepository.getPassword()
+                    if (pwd.isNullOrEmpty()) {
+                        _uiState.update {
+                            it.copy(detection = RizDetector.Result.MaybeRiz, isDetecting = false)
+                        }
+                        return@launch
+                    }
+                    val result = RizDetector.probeFile(head, pwd)
+                    _uiState.update { it.copy(detection = result, isDetecting = false) }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    AppLog.e("FileViewModel", "Detection failed", e)
+                    _uiState.update { it.copy(isDetecting = false) }
+                }
+            }
     }
 
     fun setSplitSize(mb: Int) {
         _uiState.update { it.copy(splitSizeMB = mb) }
     }
 
-    fun clearResults() {
+    // Drop back from DONE to READY with the selected files intact so the user
+    // can re-run with the same set (e.g. flip extract/compress, tweak split).
+    // Results are discarded — fresh ones will be produced if they re-submit.
+    fun goBackToSelection() {
         viewModelScope.launch {
             fileRepository.clearCache()
-            _uiState.update { it.copy(results = emptyList()) }
+            _uiState.update { it.copy(results = emptyList(), error = null) }
         }
     }
 
@@ -101,7 +198,7 @@ class FileViewModel(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                Log.e("FileViewModel", "Save result failed", e)
+                AppLog.e("FileViewModel", "Save result failed", e)
                 _events.emit(FileEvent.Error("Download failed: ${e.localizedMessage}"))
             }
         }
@@ -119,7 +216,7 @@ class FileViewModel(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                Log.e("FileViewModel", "Save all results failed", e)
+                AppLog.e("FileViewModel", "Save all results failed", e)
                 _events.emit(FileEvent.Error("Save failed: ${e.localizedMessage}"))
             }
         }
@@ -151,15 +248,18 @@ class FileViewModel(
             viewModelScope.launch {
                 try {
                     val fileEntries =
-                        files.map { file ->
-                            val bytes = fileRepository.readFile(file.uri)
-                            FileEntry(file.name, bytes)
-                        }
+                        files
+                            .map { file ->
+                                val bytes = fileRepository.readFile(file.uri)
+                                FileEntry(file.name, bytes)
+                            }.toMutableList()
 
                     _uiState.update { it.copy(loadingStatus = LoadingStatus.COMPRESSING) }
                     val encryptedBytes =
                         if (fileEntries.size == 1) {
-                            securityRepository.encryptSingleFile(fileEntries[0].name, fileEntries[0].data, pwd)
+                            val only = fileEntries[0]
+                            fileEntries.clear()
+                            securityRepository.encryptSingleFile(only.name, only.data, pwd)
                         } else {
                             securityRepository.encryptMultiFiles(fileEntries, pwd)
                         }
@@ -168,7 +268,9 @@ class FileViewModel(
                         if (_uiState.value.splitEnabled) {
                             val splitBytes = _uiState.value.splitSizeMB * 1024 * 1024
                             if (encryptedBytes.size > splitBytes) {
-                                BinaryFormat.splitBytes(encryptedBytes, splitBytes)
+                                withContext(Dispatchers.Default) {
+                                    BinaryFormat.splitBytes(encryptedBytes, splitBytes)
+                                }
                             } else {
                                 listOf(encryptedBytes)
                             }
@@ -178,18 +280,26 @@ class FileViewModel(
 
                     _uiState.update { it.copy(loadingStatus = LoadingStatus.SAVING) }
                     fileRepository.clearCache()
+                    val names = FileNamingUtils.generateResultFilenames(parts.size)
                     val resultFiles =
                         parts.mapIndexed { index, bytes ->
-                            val name = FileNamingUtils.generateResultFilename(index + 1, parts.size)
+                            val name = names[index]
                             val file = fileRepository.writeResultFile(name, bytes)
                             ResultFile(file, name, file.length())
                         }
 
-                    _uiState.update { it.copy(results = resultFiles, isProcessing = false) }
+                    _uiState.update {
+                        it.copy(
+                            results = resultFiles,
+                            isProcessing = false,
+                            resultsAreExtract = false,
+                        )
+                    }
+                    _events.emit(FileEvent.Completed(isExtract = false))
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
-                    Log.e("FileViewModel", "Encryption failed", e)
+                    AppLog.e("FileViewModel", "Encryption failed", e)
                     _uiState.update { it.copy(error = ErrorType.FILE_PROCESSING, isProcessing = false) }
                 }
             }
@@ -229,12 +339,14 @@ class FileViewModel(
                         files = sorted
                     }
 
-                    val bos = ByteArrayOutputStream()
-                    for (file in files) {
-                        val bytes = fileRepository.readFile(file.uri)
-                        bos.write(bytes)
-                    }
-                    val combinedBytes = bos.toByteArray()
+                    val combinedBytes =
+                        withContext(Dispatchers.IO) {
+                            val bos = ByteArrayOutputStream()
+                            for (file in files) {
+                                bos.write(fileRepository.readFile(file.uri))
+                            }
+                            bos.toByteArray()
+                        }
 
                     _uiState.update { it.copy(loadingStatus = LoadingStatus.EXTRACTING) }
                     val res = securityRepository.decryptBytes(combinedBytes, pwd)
@@ -244,21 +356,28 @@ class FileViewModel(
                         res.files
                             .map { f ->
                                 val file = fileRepository.writeResultFile(f.name, f.data)
-                                ResultFile(file, f.name, file.length())
+                                ResultFile(file, f.name, file.length(), res.createdAt)
                             }.ifEmpty {
                                 val name = res.filename.ifEmpty { "decrypted_file" }
                                 val file = fileRepository.writeResultFile(name, res.data)
-                                listOf(ResultFile(file, name, file.length()))
+                                listOf(ResultFile(file, name, file.length(), res.createdAt))
                             }
 
-                    _uiState.update { it.copy(results = resultFiles, isProcessing = false) }
+                    _uiState.update {
+                        it.copy(
+                            results = resultFiles,
+                            isProcessing = false,
+                            resultsAreExtract = true,
+                        )
+                    }
+                    _events.emit(FileEvent.Completed(isExtract = true))
                 } catch (e: AEADBadTagException) {
-                    Log.e("FileViewModel", "Decryption failed: bad tag", e)
+                    AppLog.e("FileViewModel", "Decryption failed: bad tag", e)
                     _uiState.update { it.copy(error = ErrorType.WRONG_KEY_OR_CORRUPT, isProcessing = false) }
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
-                    Log.e("FileViewModel", "Decryption failed", e)
+                    AppLog.e("FileViewModel", "Decryption failed", e)
                     _uiState.update { it.copy(error = ErrorType.GENERIC, isProcessing = false) }
                 }
             }

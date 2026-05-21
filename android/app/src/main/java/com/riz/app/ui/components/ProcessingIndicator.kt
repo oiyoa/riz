@@ -18,6 +18,8 @@ fun ProcessingIndicator(
     statusText: String?,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
+    stepIndex: Int? = null,
+    totalSteps: Int = 3,
 ) {
     // Only show the indicator if the operation takes longer than 400ms
     // to prevent flickering on instant operations.
@@ -47,6 +49,18 @@ fun ProcessingIndicator(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
+            // File flow: show the stepper above the spinner. Message flow: skip
+            // the stepper since the operation is sub-second and the stepper
+            // would barely have time to update.
+            if (stepIndex != null) {
+                ProgressStepper(
+                    currentStep = stepIndex,
+                    totalSteps = totalSteps,
+                    modifier = Modifier.padding(horizontal = 32.dp),
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+            }
+
             CircularProgressIndicator(
                 modifier = Modifier.size(32.dp),
                 strokeWidth = 2.5.dp,
@@ -57,13 +71,13 @@ fun ProcessingIndicator(
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = status,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            TextButton(onClick = onCancel) {
-                Text(stringResource(R.string.cancel), style = MaterialTheme.typography.labelMedium)
+            Spacer(modifier = Modifier.height(12.dp))
+            FilledTonalButton(onClick = onCancel) {
+                Text(stringResource(R.string.cancel))
             }
         }
     }

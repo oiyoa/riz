@@ -1,26 +1,42 @@
 package com.riz.app.ui
 
-import androidx.compose.animation.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Message
-import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.fragment.app.FragmentActivity
 import com.riz.app.R
 import com.riz.app.data.repository.SecurityRepository
 import com.riz.app.ui.components.PasswordBottomSheet
 import com.riz.app.ui.components.WelcomeScreen
-import com.riz.app.ui.screens.FileScreen
-import com.riz.app.ui.screens.MessageScreen
+import com.riz.app.ui.screens.HomeScreen
+import com.riz.app.util.BiometricAuth
 import com.riz.app.viewmodel.FileViewModel
 import com.riz.app.viewmodel.MessageViewModel
+
+private enum class PasswordDialogMode { CREATE, SETTINGS }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,26 +45,41 @@ fun MainScreen(
     fileViewModel: FileViewModel,
     securityRepository: SecurityRepository,
 ) {
-    var selectedTab by remember { mutableIntStateOf(0) }
-    var showPasswordDialog by remember { mutableStateOf(false) }
-    var isSettingsDialog by remember { mutableStateOf(false) }
+    var passwordDialog by remember { mutableStateOf<PasswordDialogMode?>(null) }
+    var hasPassword by remember { mutableStateOf(securityRepository.hasPassword()) }
 
-    var hasPassword by remember { mutableStateOf(!securityRepository.getPassword().isNullOrEmpty()) }
+    val context = LocalContext.current
+    val biometricTitle = stringResource(R.string.biometric_prompt_title)
+    val biometricSubtitle = stringResource(R.string.biometric_prompt_subtitle)
+    val biometricAvailable = remember { BiometricAuth.isAvailable(context) }
 
-    if (showPasswordDialog) {
+    if (passwordDialog != null) {
         PasswordBottomSheet(
-            isSettings = isSettingsDialog,
-            initialPassword = if (isSettingsDialog) securityRepository.getPassword() ?: "" else "",
-            onDismiss = { showPasswordDialog = false },
+            isSettings = passwordDialog == PasswordDialogMode.SETTINGS,
+            isBiometricAvailable = biometricAvailable,
+            onDismiss = { passwordDialog = null },
             onSave = { pwd ->
                 securityRepository.setPassword(pwd)
                 hasPassword = true
-                showPasswordDialog = false
+                passwordDialog = null
             },
             onClear = {
                 securityRepository.clearPassword()
                 hasPassword = false
-                showPasswordDialog = false
+                passwordDialog = null
+            },
+            onRequestReveal = { deliver ->
+                val activity = context as? FragmentActivity ?: return@PasswordBottomSheet
+                BiometricAuth.authenticate(
+                    activity = activity,
+                    title = biometricTitle,
+                    subtitle = biometricSubtitle,
+                    onSuccess = {
+                        val current = securityRepository.getPassword().orEmpty()
+                        if (current.isNotEmpty()) deliver(current)
+                    },
+                    onFailure = { /* user cancelled or device-credential refused */ },
+                )
             },
         )
     }
@@ -57,80 +88,25 @@ fun MainScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Text(
-                        stringResource(R.string.app_name),
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 2.sp,
+                    Image(
+                        painter = painterResource(R.drawable.ic_logo),
+                        contentDescription = stringResource(R.string.app_name),
+                        modifier = Modifier.height(32.dp),
                     )
                 },
                 actions = {
                     if (hasPassword) {
-                        IconButton(
-                            onClick = {
-                                isSettingsDialog = true
-                                showPasswordDialog = true
-                            },
-                            colors =
-                                IconButtonDefaults.iconButtonColors(
-                                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                                ),
-                        ) {
+                        IconButton(onClick = {
+                            passwordDialog = PasswordDialogMode.SETTINGS
+                        }) {
                             Icon(
                                 imageVector = Icons.Outlined.Settings,
                                 contentDescription = stringResource(R.string.settings),
-                                tint = MaterialTheme.colorScheme.primary,
                             )
                         }
                     }
                 },
-                colors =
-                    TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        titleContentColor = MaterialTheme.colorScheme.onSurface,
-                    ),
             )
-        },
-        bottomBar = {
-            AnimatedVisibility(
-                visible = hasPassword,
-                enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
-                exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
-            ) {
-                NavigationBar(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    tonalElevation = 0.dp,
-                ) {
-                    NavigationBarItem(
-                        selected = selectedTab == 0,
-                        onClick = { selectedTab = 0 },
-                        icon = { Icon(imageVector = Icons.AutoMirrored.Outlined.Message, contentDescription = null) },
-                        label = { Text(stringResource(R.string.tab_text)) },
-                        colors =
-                            NavigationBarItemDefaults.colors(
-                                selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                selectedTextColor = MaterialTheme.colorScheme.primary,
-                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                indicatorColor = MaterialTheme.colorScheme.primaryContainer,
-                            ),
-                    )
-                    NavigationBarItem(
-                        selected = selectedTab == 1,
-                        onClick = { selectedTab = 1 },
-                        icon = { Icon(imageVector = Icons.Outlined.Description, contentDescription = null) },
-                        label = { Text(stringResource(R.string.tab_file)) },
-                        colors =
-                            NavigationBarItemDefaults.colors(
-                                selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                selectedTextColor = MaterialTheme.colorScheme.primary,
-                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                indicatorColor = MaterialTheme.colorScheme.primaryContainer,
-                            ),
-                    )
-                }
-            }
         },
     ) { padding ->
         Column(
@@ -141,39 +117,18 @@ fun MainScreen(
         ) {
             AnimatedContent(
                 targetState = hasPassword,
-                transitionSpec = {
-                    fadeIn() togetherWith fadeOut()
-                },
+                transitionSpec = { fadeIn() togetherWith fadeOut() },
                 label = "hasPasswordContent",
             ) { targetHasPassword ->
                 if (!targetHasPassword) {
                     WelcomeScreen(onSetKey = {
-                        isSettingsDialog = false
-                        showPasswordDialog = true
+                        passwordDialog = PasswordDialogMode.CREATE
                     })
                 } else {
-                    AnimatedContent(
-                        targetState = selectedTab,
-                        transitionSpec = {
-                            if (targetState > initialState) {
-                                (slideInHorizontally { width -> width } + fadeIn()).togetherWith(
-                                    slideOutHorizontally { width -> -width } + fadeOut(),
-                                )
-                            } else {
-                                (slideInHorizontally { width -> -width } + fadeIn()).togetherWith(
-                                    slideOutHorizontally { width -> width } + fadeOut(),
-                                )
-                            }.using(
-                                SizeTransform(clip = false),
-                            )
-                        },
-                        label = "tabContent",
-                    ) { targetTab ->
-                        when (targetTab) {
-                            0 -> MessageScreen(messageViewModel)
-                            1 -> FileScreen(fileViewModel)
-                        }
-                    }
+                    HomeScreen(
+                        messageViewModel = messageViewModel,
+                        fileViewModel = fileViewModel,
+                    )
                 }
             }
         }

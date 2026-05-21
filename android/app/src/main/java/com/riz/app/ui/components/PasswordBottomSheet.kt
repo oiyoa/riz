@@ -1,17 +1,50 @@
 package com.riz.app.ui.components
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -21,139 +54,358 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.riz.app.R
-import com.riz.app.crypto.KeyGenerator
+import com.riz.app.crypto.PasswordPolicy
 
+private const val PASSWORD_MAX_LINES = 3
+private const val METER_SEGMENTS = 4
+private const val DISABLED_ALPHA = 0.5f
+private val AMBER = Color(0xFFF59E0B)
+
+// Width cap for tablets/foldables. Standard M3 default is 640dp, which makes
+// the input field uncomfortably wide for a single-column password form. 480dp
+// keeps the field readable while still filling the screen on phones (where it
+// gets clamped to the screen width anyway).
+private val SHEET_MAX_WIDTH = 480.dp
+
+/**
+ * Single-input password sheet.
+ *
+ * The visibility toggle in the trailing icon does double duty in settings
+ * mode: when the field is empty (no value to mask yet), tapping it asks for
+ * biometric/device-credential auth and then populates the field with the
+ * stored passphrase, revealed. After that, the same icon toggles visibility
+ * normally. No confirm field — the user verifies what they typed by tapping
+ * the eye, and generated passphrases are revealed automatically.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+// Composables genuinely have many small render branches; the threshold detekt
+// enforces on regular methods isn't a useful signal here.
+@Suppress("LongMethod", "CyclomaticComplexMethod")
 fun PasswordBottomSheet(
     isSettings: Boolean,
-    initialPassword: String = "",
+    isBiometricAvailable: Boolean,
     onDismiss: () -> Unit,
     onSave: (String) -> Unit,
     onClear: () -> Unit,
+    onRequestReveal: (onPassword: (String) -> Unit) -> Unit,
 ) {
-    var password by remember { mutableStateOf(initialPassword) }
+    var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState()
+    var revealedOriginal by remember { mutableStateOf<String?>(null) }
+    var showWeakError by remember { mutableStateOf(false) }
+    var biometricUnavailable by remember { mutableStateOf(false) }
+
+    // Skip the half-expanded state: the sheet's content is short and there's
+    // nothing to scroll to, so the default 50%-then-drag-up behavior would
+    // just hide our primary button behind a gesture.
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    val assessment =
+        remember(password) {
+            if (password.isEmpty()) null else PasswordPolicy.assessStrength(password)
+        }
+    val isUnchangedExisting =
+        isSettings && revealedOriginal != null && password == revealedOriginal
+
+    fun attemptSave() {
+        when {
+            password.isEmpty() -> Unit
+            isUnchangedExisting -> onSave(password)
+            (assessment?.score ?: 0) < PasswordPolicy.MIN_SCORE -> showWeakError = true
+            else -> onSave(password)
+        }
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         dragHandle = { BottomSheetDefaults.DragHandle() },
         containerColor = MaterialTheme.colorScheme.surface,
+        sheetMaxWidth = SHEET_MAX_WIDTH,
     ) {
         Column(
             modifier =
                 Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp)
-                    .padding(bottom = 48.dp),
+                    .padding(bottom = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                text = if (isSettings) stringResource(R.string.key_settings) else stringResource(R.string.set_new_key),
+                text =
+                    if (isSettings) {
+                        stringResource(R.string.password_settings)
+                    } else {
+                        stringResource(R.string.create_password)
+                    },
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(Modifier.height(8.dp))
 
             Text(
                 text =
                     if (isSettings) {
-                        stringResource(R.string.key_settings_desc)
+                        stringResource(R.string.password_settings_desc)
                     } else {
-                        stringResource(R.string.set_new_key_desc)
+                        stringResource(R.string.create_password_desc)
                     },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 24.dp),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 8.dp).padding(bottom = 24.dp),
             )
 
+            val hasStoredUnrevealed = isSettings && password.isEmpty() && revealedOriginal == null
             OutlinedTextField(
                 value = password,
-                onValueChange = { password = it },
-                label = { Text(stringResource(R.string.key_label)) },
-                placeholder = { Text(stringResource(R.string.enter_password)) },
-                singleLine = true,
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                onValueChange = {
+                    password = it
+                    showWeakError = false
+                    biometricUnavailable = false
+                },
+                label = { Text(stringResource(R.string.password_label)) },
+                singleLine = false,
+                maxLines = PASSWORD_MAX_LINES,
+                visualTransformation =
+                    if (passwordVisible) {
+                        VisualTransformation.None
+                    } else {
+                        PasswordVisualTransformation()
+                    },
                 textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Left),
                 keyboardOptions =
                     KeyboardOptions(
                         keyboardType = KeyboardType.Password,
                         imeAction = ImeAction.Done,
                     ),
-                keyboardActions =
-                    KeyboardActions(
-                        onDone = { if (password.isNotEmpty()) onSave(password) },
-                    ),
+                keyboardActions = KeyboardActions(onDone = { attemptSave() }),
+                leadingIcon =
+                    if (hasStoredUnrevealed) {
+                        {
+                            // Status indicator only — communicates "a key is
+                            // saved, the field is locked." Not part of the
+                            // input value and not interactive.
+                            Icon(
+                                imageVector = Icons.Outlined.Key,
+                                contentDescription = stringResource(R.string.password_saved_status),
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                    } else {
+                        null
+                    },
                 trailingIcon = {
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(
-                            imageVector = if (passwordVisible) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
-                            contentDescription = if (passwordVisible) stringResource(R.string.hide) else stringResource(R.string.show),
-                        )
-                    }
+                    EyeToggle(
+                        visible = passwordVisible,
+                        canRevealStored = hasStoredUnrevealed,
+                        onToggleVisibility = { passwordVisible = !passwordVisible },
+                        onRevealStored = {
+                            if (isBiometricAvailable) {
+                                onRequestReveal { current ->
+                                    revealedOriginal = current
+                                    password = current
+                                    passwordVisible = true
+                                }
+                            } else {
+                                biometricUnavailable = true
+                            }
+                        },
+                    )
+                },
+                supportingText = {
+                    SupportingContent(
+                        assessment = assessment,
+                        showWeakError = showWeakError,
+                        biometricUnavailable = biometricUnavailable,
+                        showRevealHint = hasStoredUnrevealed,
+                    )
                 },
                 modifier = Modifier.fillMaxWidth(),
                 shape = MaterialTheme.shapes.medium,
             )
 
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                horizontalArrangement = Arrangement.End,
-            ) {
-                SuggestionChip(
-                    onClick = {
-                        password = KeyGenerator.generateSecureKey()
-                        passwordVisible = true
-                    },
-                    label = { Text(stringResource(R.string.generate_suggested_key)) },
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Outlined.Refresh,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                        )
-                    },
-                )
-            }
+            Spacer(Modifier.height(8.dp))
 
-            Spacer(modifier = Modifier.height(24.dp))
+            // AssistChip — "suggested action," not "suggested input value"
+            // (the latter is SuggestionChip's role). Filled with the theme's
+            // secondaryContainer so the chip reads as a real affordance
+            // against the surface, not just an outlined hint.
+            AssistChip(
+                onClick = {
+                    val phrase = PasswordPolicy.generatePassphrase()
+                    password = phrase
+                    passwordVisible = true
+                    showWeakError = false
+                    biometricUnavailable = false
+                },
+                label = { Text(stringResource(R.string.generate_strong_password)) },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Outlined.AutoAwesome,
+                        contentDescription = null,
+                        modifier = Modifier.size(AssistChipDefaults.IconSize),
+                    )
+                },
+                colors =
+                    AssistChipDefaults.assistChipColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        labelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        leadingIconContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    ),
+                border = null,
+            )
 
-            // Action Buttons
+            Spacer(Modifier.height(24.dp))
+
             Button(
-                onClick = { if (password.isNotEmpty()) onSave(password) },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                shape = MaterialTheme.shapes.medium,
+                onClick = { attemptSave() },
+                modifier = Modifier.fillMaxWidth(),
                 enabled = password.isNotEmpty(),
             ) {
                 Text(
-                    text = if (isSettings) stringResource(R.string.save_changes) else stringResource(R.string.confirm_and_continue),
-                    style = MaterialTheme.typography.titleMedium,
+                    text =
+                        if (isSettings) {
+                            stringResource(R.string.save_changes)
+                        } else {
+                            stringResource(R.string.confirm_and_continue)
+                        },
                 )
             }
 
             if (isSettings) {
+                // Visual separator: everything above this line is the main
+                // view/change flow; everything below is rare or destructive.
+                // Without the divider, Delete sits 8dp under Save and reads as
+                // "the next primary action" — easy to mis-tap.
+                Spacer(Modifier.height(24.dp))
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant,
+                )
+                Spacer(Modifier.height(8.dp))
+
                 TextButton(
                     onClick = onClear,
-                    modifier = Modifier.padding(top = 8.dp),
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                    colors =
+                        ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error,
+                        ),
                 ) {
-                    Icon(imageVector = Icons.Outlined.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(stringResource(R.string.delete_current_key))
+                    Icon(
+                        imageVector = Icons.Outlined.Delete,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.delete_password),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(Modifier.height(8.dp))
 
                 Text(
                     text = "v${com.riz.app.BuildConfig.VERSION_NAME}",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = DISABLED_ALPHA),
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun EyeToggle(
+    visible: Boolean,
+    canRevealStored: Boolean,
+    onToggleVisibility: () -> Unit,
+    onRevealStored: () -> Unit,
+) {
+    IconButton(
+        onClick = { if (canRevealStored) onRevealStored() else onToggleVisibility() },
+    ) {
+        Icon(
+            imageVector = if (visible) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
+            contentDescription =
+                if (visible) {
+                    stringResource(R.string.hide)
+                } else {
+                    stringResource(R.string.show)
+                },
+        )
+    }
+}
+
+@Composable
+private fun SupportingContent(
+    assessment: PasswordPolicy.Assessment?,
+    showWeakError: Boolean,
+    biometricUnavailable: Boolean,
+    showRevealHint: Boolean,
+) {
+    when {
+        biometricUnavailable ->
+            Text(
+                stringResource(R.string.biometric_unavailable),
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+            )
+        showWeakError ->
+            Text(
+                stringResource(R.string.strength_too_weak_error),
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+            )
+        assessment != null -> CompactStrengthRow(assessment.score)
+        showRevealHint ->
+            Text(
+                stringResource(R.string.reveal_hint),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall,
+            )
+    }
+}
+
+@Composable
+private fun CompactStrengthRow(score: Int) {
+    val activeColor =
+        when (score) {
+            0, 1 -> MaterialTheme.colorScheme.error
+            2 -> AMBER
+            else -> MaterialTheme.colorScheme.tertiary
+        }
+    val inactive = MaterialTheme.colorScheme.surfaceVariant
+    val label =
+        when (score) {
+            0 -> stringResource(R.string.strength_very_weak)
+            1 -> stringResource(R.string.strength_weak)
+            2 -> stringResource(R.string.strength_fair)
+            3 -> stringResource(R.string.strength_strong)
+            else -> stringResource(R.string.strength_very_strong)
+        }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+            for (i in 1..METER_SEGMENTS) {
+                Box(
+                    modifier =
+                        Modifier
+                            .width(14.dp)
+                            .height(3.dp)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(if (i <= score) activeColor else inactive),
+                )
+            }
+        }
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text = label,
+            color = activeColor,
+            style = MaterialTheme.typography.labelSmall,
+        )
     }
 }
