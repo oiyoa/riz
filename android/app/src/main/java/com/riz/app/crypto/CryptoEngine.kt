@@ -207,14 +207,12 @@ object CryptoEngine {
 
             if (BinaryFormat.isMultiFile(dec)) {
                 DecryptResult(
-                    multiFile = true,
                     files = BinaryFormat.unpackMultipleFiles(dec),
                     createdAt = createdAt,
                 )
             } else {
                 val (name, data) = BinaryFormat.unpackSingleFile(dec)
                 DecryptResult(
-                    multiFile = false,
                     filename = name,
                     data = data,
                     createdAt = createdAt,
@@ -268,7 +266,6 @@ object CryptoEngine {
         }
 
     class DecryptResult(
-        val multiFile: Boolean,
         val filename: String = "",
         val data: ByteArray = ByteArray(0),
         val files: List<FileEntry> = emptyList(),

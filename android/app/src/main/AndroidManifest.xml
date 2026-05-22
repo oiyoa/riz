@@ -7,7 +7,7 @@
          Always user-initiated: the user taps "Open" on a file they just extracted. -->
     <uses-permission
         android:name="android.permission.REQUEST_INSTALL_PACKAGES"
-        tools:ignore="ProtectedPermissions" />
+        tools:ignore="ProtectedPermissions,RequestInstallPackagesPolicy" />
 
     <application
         android:name=".RizApplication"
@@ -52,7 +52,7 @@
             </intent-filter>
         </activity>
         <provider
-            android:name="androidx.core.content.FileProvider"
+            android:name=".util.RizFileProvider"
             android:authorities="${applicationId}.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">

@@ -3,17 +3,14 @@ package com.riz.app.ui.components
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,7 +20,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material3.Button
@@ -31,30 +27,21 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
 
 // Default step count for the progress stepper (Preparing → Processing → Saving).
 const val DEFAULT_STEPPER_TOTAL = 3
@@ -62,88 +49,6 @@ const val DEFAULT_STEPPER_TOTAL = 3
 private val StepperDotActive = 14.dp
 private val StepperDotInactive = 10.dp
 private val StepperConnectorPad = 4.dp
-
-// Delay (ms) before the badge pops and the haptic fires. Matches the parent
-// AnimatedContent's slide+fade so the punctuation lands as the screen settles,
-// not while it's still moving — keeps the celebration legible.
-private const val HEADER_SETTLE_DELAY_MS = 180L
-
-// "What just happened" hero on the DONE state. Sits above the result list and
-// shares its container surface (surfaceContainerLow) so the two read as one
-// stacked result group, not two competing tonal blocks. The badge size, title
-// style, and supporting-text style match FileLeadingIcon and SelectedFilesHeader
-// — every leading icon in the app is 40dp/22dp, every section title is
-// titleMedium — so the hero looks like part of the existing system, not a
-// one-off. The "moment of completion" comes from motion, not bulk: the badge
-// spring-pops in and a CONFIRM haptic fires once per DONE entry.
-@Composable
-fun ResultHeaderCard(
-    title: String,
-    modifier: Modifier = Modifier,
-    subtitle: String? = null,
-) {
-    val haptic = LocalHapticFeedback.current
-    var animateIn by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        delay(HEADER_SETTLE_DELAY_MS)
-        haptic.performHapticFeedback(HapticFeedbackType.Confirm)
-        animateIn = true
-    }
-
-    val iconScale by animateFloatAsState(
-        targetValue = if (animateIn) 1f else 0f,
-        animationSpec =
-            spring(
-                dampingRatio = Spring.DampingRatioLowBouncy,
-                stiffness = Spring.StiffnessMedium,
-            ),
-        label = "checkScale",
-    )
-
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        shape = MaterialTheme.shapes.large,
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(
-                modifier =
-                    Modifier
-                        .size(40.dp)
-                        .scale(iconScale)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Check,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(22.dp),
-                )
-            }
-            Spacer(Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                subtitle?.let {
-                    Text(
-                        text = it,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-        }
-    }
-}
 
 // 3-dot stepper for file processing. Reassures the user that work is moving:
 // dots and segments fill left-to-right as LoadingStatus advances.

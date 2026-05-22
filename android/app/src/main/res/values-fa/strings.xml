@@ -2,11 +2,13 @@
 <resources>
     <string name="app_name">ریز</string>
 
-    <!-- Password sheet -->
-    <string name="password_settings">رمز عبور</string>
+    <!-- Settings / password sheet -->
+    <string name="settings_title">تنظیمات</string>
     <string name="create_password">ساخت رمز عبور</string>
-    <string name="password_settings_desc">رمز فعلی خود را ببینید یا تغییر دهید.</string>
     <string name="create_password_desc">برای فشرده‌سازی و محافظت از فایل‌ها و پیام‌هایتان، یک رمز انتخاب کنید.</string>
+    <string name="check_for_updates">بررسی به‌روزرسانی</string>
+    <string name="checking_for_updates">در حال بررسی…</string>
+    <string name="up_to_date">به‌روز است</string>
     <string name="password_label">رمز عبور</string>
     <string name="hide">پنهان کردن</string>
     <string name="show">نمایش</string>
@@ -33,7 +35,7 @@
     <string name="biometric_unavailable">روی این دستگاه قفل صفحه تنظیم نشده است. ابتدا قفل صفحه را فعال کنید.</string>
 
     <!-- Main / nav -->
-    <string name="settings">تنظیمات رمز عبور</string>
+    <string name="settings">تنظیمات</string>
     <string name="cleared_message_for_files">پیام پاک شد</string>
     <string name="cleared_files_for_message">فایل‌های انتخاب‌شده پاک شد</string>
 
@@ -77,10 +79,6 @@
         <item quantity="one">در حال پردازش %1$d فایل…</item>
         <item quantity="other">در حال پردازش %1$d فایل…</item>
     </plurals>
-    <string name="step_preparing">آماده‌سازی</string>
-    <string name="step_processing">پردازش</string>
-    <string name="step_saving">ذخیره</string>
-
     <!-- Done -->
     <string name="result_compressed">فشرده شد</string>
     <string name="result_extracted">استخراج شد</string>

@@ -1,8 +1,66 @@
+@file:Suppress("UnstableApiUsage")
+
+import com.android.build.api.variant.FilterConfiguration
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.kotlinCompose)
     alias(libs.plugins.spotless)
     alias(libs.plugins.detekt)
+}
+
+val appName = "Riz"
+val baseVersionCode = 1
+val baseVersionName = "1.0.0"
+
+val abiVersionCodes =
+    mapOf(
+        "armeabi-v7a" to 1,
+        "x86" to 2,
+        "arm64-v8a" to 3,
+        "x86_64" to 4,
+    )
+val abiVersionCodeMultiplier = 1_000_000
+
+val secretsProps =
+    Properties().apply {
+        val secretsFile = project.rootProject.file("secrets.properties")
+        if (secretsFile.exists()) secretsFile.inputStream().use { load(it) }
+    }
+val localProps =
+    Properties().apply {
+        val localFile = project.rootProject.file("local.properties")
+        if (localFile.exists()) localFile.inputStream().use { load(it) }
+    }
+
+fun secret(
+    envName: String,
+    propName: String,
+): String =
+    System.getenv(envName)
+        ?: secretsProps.getProperty(propName)
+        ?: localProps.getProperty(propName)
+        ?: ""
+
+val updaterManifestUrl = secret("RIZ_UPDATER_MANIFEST_URL", "updater.manifestUrl")
+val updaterPubKeyHex = secret("RIZ_UPDATER_PUBKEY", "updater.publicKey")
+val updaterPubKeyId = secret("RIZ_UPDATER_KEY_ID", "updater.keyId").ifBlank { "1" }
+
+fun javaEscape(s: String): String = s.replace("\\", "\\\\").replace("\"", "\\\"")
+
+val releaseKeystorePath = secret("RIZ_KEYSTORE_PATH", "riz.keystore.path").ifBlank { "keys/release.jks" }
+val releaseKeystorePassword = secret("RIZ_KEYSTORE_PASSWORD", "riz.keystore.password")
+val releaseKeyAlias = secret("RIZ_KEY_ALIAS", "riz.key.alias").ifBlank { "riz-release" }
+val releaseKeyPassword = secret("RIZ_KEY_PASSWORD", "riz.key.password").ifBlank { releaseKeystorePassword }
+val releaseKeystoreFile = rootProject.file(releaseKeystorePath)
+val releaseSigningAvailable = releaseKeystoreFile.exists() && releaseKeystorePassword.isNotBlank() && releaseKeyPassword.isNotBlank()
+
+if (!releaseSigningAvailable) {
+    println(
+        "BUILD: release signing NOT configured (missing ${releaseKeystoreFile.path} or blank passwords) — " +
+            "debug builds OK; assembleRelease will fail. See secrets.properties.template.",
+    )
 }
 
 android {
@@ -11,25 +69,27 @@ android {
 
     defaultConfig {
         applicationId = "com.riz.app"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 37
-        versionCode = System.getenv("VERSION_CODE")?.toIntOrNull() ?: 1
-        versionName = System.getenv("VERSION_NAME") ?: "1.0"
+        versionCode = baseVersionCode
+        versionName = baseVersionName
+
+        buildConfigField("String", "UPDATER_MANIFEST_URL", "\"${javaEscape(updaterManifestUrl)}\"")
+        buildConfigField("String", "UPDATER_PUBKEY_HEX", "\"${javaEscape(updaterPubKeyHex)}\"")
+        buildConfigField("int", "UPDATER_KEY_ID", updaterPubKeyId.toIntOrNull()?.toString() ?: "1")
     }
 
-    @Suppress("UnstableApiUsage")
     androidResources {
         localeFilters += listOf("en", "fa")
     }
 
     signingConfigs {
-        create("release") {
-            val keystorePath = System.getenv("KEYSTORE_PATH")
-            if (keystorePath != null) {
-                storeFile = file(keystorePath)
-                storePassword = System.getenv("KEYSTORE_PASSWORD")
-                keyAlias = System.getenv("KEY_ALIAS")
-                keyPassword = System.getenv("KEY_PASSWORD")
+        if (releaseSigningAvailable) {
+            create("release") {
+                storeFile = releaseKeystoreFile
+                storePassword = releaseKeystorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
             }
         }
     }
@@ -42,15 +102,14 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
-            // Only apply signingConfig if the env vars are present (CI)
-            if (System.getenv("KEYSTORE_PATH") != null) {
+            if (releaseSigningAvailable) {
                 signingConfig = signingConfigs.getByName("release")
             }
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
     buildFeatures {
         compose = true
@@ -61,7 +120,7 @@ android {
         abi {
             isEnable = true
             reset()
-            include("armeabi-v7a", "arm64-v8a")
+            include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
             isUniversalApk = true
         }
     }
@@ -77,8 +136,10 @@ android {
     }
 }
 
-kotlin {
-    jvmToolchain(8)
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 spotless {
@@ -99,6 +160,34 @@ detekt {
     baseline = file("$projectDir/config/detekt/baseline.xml")
 }
 
+// Hard-fail assembleRelease when signing isn't wired
+gradle.taskGraph.whenReady {
+    if (!releaseSigningAvailable && allTasks.any { it.name == "assembleRelease" || it.name == "bundleRelease" }) {
+        throw GradleException(
+            "Release signing is not configured. Place the keystore at $releaseKeystorePath and set " +
+                "riz.keystore.password / riz.key.alias / riz.key.password in secrets.properties. " +
+                "See secrets.properties.template.",
+        )
+    }
+}
+
+androidComponents {
+    onVariants { variant ->
+        variant.outputs.forEach { output ->
+            val abi =
+                output.filters
+                    .find { it.filterType == FilterConfiguration.FilterType.ABI }
+                    ?.identifier
+            // Universal APK keeps base versionCode so installers prefer the
+            // per-ABI APK when one matches the device.
+            output.versionCode.set((abiVersionCodes[abi] ?: 0) * abiVersionCodeMultiplier + baseVersionCode)
+
+            val abiPart = abi ?: "universal"
+            output.outputFileName.set("$appName-$baseVersionName-$abiPart-${variant.buildType}.apk")
+        }
+    }
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)
@@ -115,6 +204,7 @@ dependencies {
     implementation(libs.androidx.biometric)
     implementation(libs.androidx.fragment.ktx)
     implementation(libs.zxcvbn)
+    implementation(libs.oiyoa.updater)
 
     debugImplementation(libs.androidx.ui.tooling)
 }

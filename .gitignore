@@ -45,6 +45,8 @@ android/.cxx/
 android/*.jks
 android/*.keystore
 android/keystore.properties
+android/keys/
+android/secrets.properties
 
 # Generated
 android/app/output-metadata.json

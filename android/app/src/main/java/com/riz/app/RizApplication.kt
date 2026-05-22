@@ -3,6 +3,7 @@ package com.riz.app
 import android.app.Application
 import com.riz.app.crypto.PasswordPolicy
 import com.riz.app.di.AppContainer
+import com.riz.app.updater.RizUpdater
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -17,6 +18,9 @@ class RizApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         container = AppContainer(this)
+        // No-op when the BuildConfig fields are blank, so dev builds without
+        // the updater secrets configured stay fully functional.
+        RizUpdater.init(this)
     }
 
     /**

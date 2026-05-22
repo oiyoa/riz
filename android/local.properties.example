@@ -1,0 +1,11 @@
+# Template for local.properties (gitignored). Copy to local.properties and
+# fill in the values that match your machine.
+#
+# Android Studio rewrites `sdk.dir` automatically; you only need to set it by
+# hand if you're working from the CLI without ever opening the project in AS.
+
+# Path to the Android SDK on this machine.
+#sdk.dir=/Users/you/Library/Android/sdk
+
+# Optional: local checkout of oiyoa-android-libs for composite-build.
+#oiyoa.sharedLibs.path=

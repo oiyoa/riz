@@ -103,6 +103,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.fragment.app.FragmentActivity
@@ -124,6 +125,7 @@ import com.riz.app.viewmodel.ResultFile
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.Locale
+import kotlin.math.roundToInt
 
 // Drives the textfield resize, the action-row shrink/expand, and the output
 // card's size transform during compress/extract transitions. Sharing one
@@ -367,11 +369,9 @@ fun HomeScreen(
     }
 }
 
-private fun MessageUiState.hasContent(): Boolean =
-    inputText.isNotEmpty() || isProcessing || showOutput
+private fun MessageUiState.hasContent(): Boolean = inputText.isNotEmpty() || isProcessing || showOutput
 
-private fun FileUiState.hasContent(): Boolean =
-    selectedFiles.isNotEmpty() || isProcessing || results.isNotEmpty()
+private fun FileUiState.hasContent(): Boolean = selectedFiles.isNotEmpty() || isProcessing || results.isNotEmpty()
 
 @Composable
 private fun DragDropOverlay() {
@@ -623,7 +623,6 @@ private fun MessageOutputCard(
                 subtitle =
                     when {
                         isExtract && createdAt != null -> formatCreatedAt(createdAt)
-                        !isExtract -> stringResource(R.string.result_message_compressed_desc)
                         else -> null
                     },
                 onDismiss = onDismiss,
@@ -692,7 +691,7 @@ private fun MessageOutputCard(
 
 @Composable
 @Suppress("LongParameterList")
-private fun ColumnScope.FilesMode(
+private fun FilesMode(
     ui: FileUiState,
     savedFileNames: Set<String>,
     onAddFile: () -> Unit,
@@ -1327,19 +1326,23 @@ private fun VerticalScrollbarIndicator(
     val viewportPx = scrollState.viewportSize.toFloat()
     val totalContentPx = viewportPx + maxScroll
     val thumbFraction = (viewportPx / totalContentPx).coerceIn(SCROLL_THUMB_MIN_FRACTION, 1f)
-    val scrollFraction = scrollState.value.toFloat() / maxScroll
 
     val color = MaterialTheme.colorScheme.outline.copy(alpha = SCROLLBAR_ALPHA)
 
     BoxWithConstraints(modifier = modifier) {
         val trackHeight = maxHeight
         val thumbHeight = trackHeight * thumbFraction
-        val thumbOffset = (trackHeight - thumbHeight) * scrollFraction
 
+        // Read scrollState.value inside the offset lambda (layout phase) instead
+        // of in composition — every scroll otherwise forces recomposition.
         Box(
             modifier =
                 Modifier
-                    .offset(y = thumbOffset)
+                    .offset {
+                        val travelPx = (trackHeight - thumbHeight).toPx()
+                        val scrollFraction = scrollState.value.toFloat() / maxScroll
+                        IntOffset(0, (travelPx * scrollFraction).roundToInt())
+                    }
                     .fillMaxWidth()
                     .height(thumbHeight)
                     .background(color, CircleShape),

@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -16,22 +15,28 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
+import com.oiyoa.android.updater.ui.UpdaterSnackbarRelay
 import com.riz.app.R
 import com.riz.app.data.repository.SecurityRepository
+import com.riz.app.ui.components.AnimatedLogo
 import com.riz.app.ui.components.PasswordBottomSheet
 import com.riz.app.ui.components.WelcomeScreen
+import com.riz.app.ui.components.rememberLogoSignals
 import com.riz.app.ui.screens.HomeScreen
+import com.riz.app.updater.RizUpdater
 import com.riz.app.util.BiometricAuth
 import com.riz.app.viewmodel.FileViewModel
 import com.riz.app.viewmodel.MessageViewModel
@@ -40,6 +45,7 @@ private enum class PasswordDialogMode { CREATE, SETTINGS }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+@Suppress("AssignedValueIsNeverRead")
 fun MainScreen(
     messageViewModel: MessageViewModel,
     fileViewModel: FileViewModel,
@@ -48,10 +54,24 @@ fun MainScreen(
     var passwordDialog by remember { mutableStateOf<PasswordDialogMode?>(null) }
     var hasPassword by remember { mutableStateOf(securityRepository.hasPassword()) }
 
+    val msgUi by messageViewModel.uiState.collectAsState()
+    val fileUi by fileViewModel.uiState.collectAsState()
+    val logoSignals =
+        rememberLogoSignals(
+            messageState = msgUi,
+            fileState = fileUi,
+            passwordSheetOpen = passwordDialog != null,
+        )
+
     val context = LocalContext.current
     val biometricTitle = stringResource(R.string.biometric_prompt_title)
     val biometricSubtitle = stringResource(R.string.biometric_prompt_subtitle)
     val biometricAvailable = remember { BiometricAuth.isAvailable(context) }
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    if (RizUpdater.isEnabled()) {
+        UpdaterSnackbarRelay(snackbarHostState)
+    }
 
     if (passwordDialog != null) {
         PasswordBottomSheet(
@@ -88,10 +108,13 @@ fun MainScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Image(
-                        painter = painterResource(R.drawable.ic_logo),
+                    AnimatedLogo(
                         contentDescription = stringResource(R.string.app_name),
-                        modifier = Modifier.height(32.dp),
+                        modifier = Modifier.height(36.dp),
+                        mood = logoSignals.mood,
+                        celebrateTick = logoSignals.celebrateTick,
+                        sadTick = logoSignals.sadTick,
+                        secretMode = logoSignals.secretMode,
                     )
                 },
                 actions = {
@@ -108,6 +131,7 @@ fun MainScreen(
                 },
             )
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
         Column(
             modifier =

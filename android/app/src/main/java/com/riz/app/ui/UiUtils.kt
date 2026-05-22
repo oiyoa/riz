@@ -6,7 +6,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.riz.app.R
 import com.riz.app.viewmodel.ErrorType
-import com.riz.app.viewmodel.LoadingStatus
 
 @Composable
 fun ErrorType.asString(): String =
@@ -20,31 +19,6 @@ fun ErrorType.asString(): String =
         ErrorType.FILE_PROCESSING -> stringResource(R.string.error_file_processing)
         ErrorType.SELECT_FILE -> stringResource(R.string.error_select_file)
     }
-
-// Step name shown under the progress stepper. We collapse the four internal
-// states into three user-facing phases — COMPRESSING/EXTRACTING are both
-// "Processing" since the user already knows which way they're going.
-@Composable
-fun LoadingStatus.asStepName(): String =
-    when (this) {
-        LoadingStatus.PREPARING -> stringResource(R.string.step_preparing)
-        LoadingStatus.COMPRESSING, LoadingStatus.EXTRACTING -> stringResource(R.string.step_processing)
-        LoadingStatus.SAVING -> stringResource(R.string.step_saving)
-    }
-
-// Index used to drive the stepper UI. We collapse COMPRESSING and EXTRACTING
-// into the same "processing" step — the user doesn't need to see that
-// distinction reflected on the stepper.
-fun LoadingStatus.stepIndex(): Int =
-    when (this) {
-        LoadingStatus.PREPARING -> STEP_PREPARING
-        LoadingStatus.COMPRESSING, LoadingStatus.EXTRACTING -> STEP_PROCESSING
-        LoadingStatus.SAVING -> STEP_SAVING
-    }
-
-private const val STEP_PREPARING = 1
-private const val STEP_PROCESSING = 2
-private const val STEP_SAVING = 3
 
 // Locale-aware "Created 2 hours ago (Jan 5, 2026, 3:45 PM)" line shown on
 // decrypt results. DateUtils respects the user's system 12/24-hour setting

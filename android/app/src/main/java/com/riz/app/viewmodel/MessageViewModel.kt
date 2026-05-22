@@ -24,9 +24,6 @@ class MessageViewModel(
     private val _uiState = MutableStateFlow(MessageUiState())
     val uiState: StateFlow<MessageUiState> = _uiState.asStateFlow()
 
-    private val _events = MutableSharedFlow<MessageEvent>()
-    val events: SharedFlow<MessageEvent> = _events.asSharedFlow()
-
     // replay=1 so the HomeScreen collector receives the event even if the
     // intake happens during MainActivity.onCreate, before composition mounts.
     private val _shareIntake = MutableSharedFlow<Unit>(replay = 1)
@@ -34,10 +31,6 @@ class MessageViewModel(
 
     private var currentJob: Job? = null
     private var detectionJob: Job? = null
-
-    sealed class MessageEvent {
-        data class Completed(val isExtract: Boolean) : MessageEvent()
-    }
 
     fun ingestSharedText(text: String) {
         onInputPasted(text)
@@ -156,7 +149,6 @@ class MessageViewModel(
                             showOutput = true,
                         )
                     }
-                    _events.emit(MessageEvent.Completed(isExtract = false))
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
@@ -205,7 +197,6 @@ class MessageViewModel(
                             showOutput = true,
                         )
                     }
-                    _events.emit(MessageEvent.Completed(isExtract = true))
                 } catch (e: AEADBadTagException) {
                     AppLog.e("MessageViewModel", "Decryption failed: bad tag", e)
                     _uiState.update { it.copy(error = ErrorType.WRONG_KEY_OR_CORRUPT, isProcessing = false) }
