@@ -11,8 +11,8 @@ plugins {
 }
 
 val appName = "Riz"
-val baseVersionCode = 1
-val baseVersionName = "1.0.0"
+val baseVersionCode = 2
+val baseVersionName = "1.1.0"
 
 val abiVersionCodes =
     mapOf(
